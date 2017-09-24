@@ -1,16 +1,10 @@
 # **Finding Lane Lines on the Road**
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file. But feel free to use some other method and submit a pdf if you prefer.
-
----
-
 **Finding Lane Lines on the Road**
 
 The goals / steps of this project are the following:
 * Make a pipeline that finds lane lines on the road
-* Reflect on your work in a written report
+* Reflect on the work in a written report
 
 
 [//]: # (Image References)
@@ -101,6 +95,7 @@ car co-ordinate system.
 lane-markings in the region--of-interest we define. The above solution does not help
 when that is not the case, e.g. while we are driving from the side of the road on to
 the road.
+
 
 
 
