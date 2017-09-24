@@ -205,7 +205,7 @@ def extract_lane_lines(test_image, plot_images=False):
     # Define the Hough transform parameters
     rho = 2  # distance resolution in pixels of the Hough grid
     theta = np.pi / 180  # angular resolution in radians of the Hough grid
-    threshold = 1  # minimum number of votes (intersections in Hough grid cell)
+    threshold = 10  # minimum number of votes (intersections in Hough grid cell)
     min_line_len = 15  # minimum number of pixels making up a line
     max_line_gap = 5  # maximum gap in pixels between connectable line segments
     img_hough_lines = \
