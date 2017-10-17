@@ -66,13 +66,13 @@ print("Updated Image Shape: {}".format(X_train[0].shape))
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 index = random.randint(0, len(X_train))
 image = X_train[index].squeeze()
 
-plt.figure(figsize=(1,1))
-plt.imshow(image, cmap="gray")
+#plt.figure(figsize=(1,1))
+#plt.imshow(image, cmap="gray")
 print(y_train[index])
 
 
@@ -213,7 +213,7 @@ def LeNet(x):
     act3 = activation_relu(fc2)
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = 10.
-    fc3 = full_connection(x_flat, weights['w_fc_3'], biases['b_fc_3'])
+    logits = full_connection(x_flat, weights['w_fc_3'], biases['b_fc_3'])
     
     return logits
 
