@@ -1,3 +1,17 @@
+# acrtifacts of tensorflow runs
+checkpoint
+
+#*.p # pickle data files
+train.p
+test.p
+valid.p
+
+*.gz
+*.data*
+*.index
+*.meta
+
+
 # pycharm-related
 .idea
 
