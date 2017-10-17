@@ -66,13 +66,13 @@ print("Updated Image Shape: {}".format(X_train[0].shape))
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 index = random.randint(0, len(X_train))
 image = X_train[index].squeeze()
 
-plt.figure(figsize=(1,1))
-plt.imshow(image, cmap="gray")
+#plt.figure(figsize=(1,1))
+#plt.imshow(image, cmap="gray")
 print(y_train[index])
 
 
