@@ -181,39 +181,51 @@ def LeNet(x):
     
     # TODO: Layer 1: Convolutional. Input = 32x32x1. Output = 28x28x6.
     conv1 = conv2d(x, weights['w_conv_1'], biases['b_conv_1'], strides=2)
+    print("conv1.shape = {}".format(conv1.shape))
 
     # TODO: Activation.
     act1 = activation_relu(conv1)
+    print("act1.shape = {}".format(act1.shape))
 
     # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
     pool1 = maxpool2d(act1, k=2)
+    print("pool1.shape = {}".format(pool1.shape))
 
     # TODO: Layer 2: Convolutional. Output = 10x10x16.
     conv2 = conv2d(pool1, weights['w_conv_2'], biases['b_conv_2'], strides=2)
+    print("conv2.shape = {}".format(conv2.shape))
     
     # TODO: Activation.
     act2 = activation_relu(conv2)
+    print("act2.shape = {}".format(act2.shape))
 
     # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
     pool2 = maxpool2d(act2, k=2)
+    print("pool2.shape = {}".format(pool2.shape))
 
     # TODO: Flatten. Input = 5x5x16. Output = 400.
     x_flat = flatten(pool2)
+    print("x_flat.shape = {}".format(x_flat.shape))
 
     # TODO: Layer 3: Fully Connected. Input = 400. Output = 120.
     fc1 = full_connection(x_flat, weights['w_fc_1'], biases['b_fc_1'])
+    print("fc1.shape = {}".format(fc1.shape))
     
     # TODO: Activation.
     act2 = activation_relu(fc1)
+    print("act2.shape = {}".format(act2.shape))
 
     # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
     fc2 = full_connection(x_flat, weights['w_fc_2'], biases['b_fc_2'])
+    print("fc2.shape = {}".format(fc2.shape))
     
     # TODO: Activation.
     act3 = activation_relu(fc2)
+    print("act3.shape = {}".format(act3.shape))
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = 10.
     logits = full_connection(x_flat, weights['w_fc_3'], biases['b_fc_3'])
+    print("logits.shape = {}".format(logits.shape))
     
     return logits
 
