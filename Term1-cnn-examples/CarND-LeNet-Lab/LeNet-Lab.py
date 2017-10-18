@@ -152,6 +152,9 @@ def conv2d(x, W, b, strides=1):
 def activation_relu(x):
     return tf.nn.relu(x)
 
+def activation_sigmoid(x):
+    return tf.nn.sigmoid(x)
+
 def maxpool2d(x, k=2):
     return tf.nn.max_pool(x, ksize=[1, k, k, 1], strides=[1, k, k, 1], padding='VALID')
 
@@ -184,6 +187,7 @@ def LeNet(x):
     print("conv1.shape = {}".format(conv1.get_shape()))
 
     # TODO: Activation.
+    #act1 = activation_relu(conv1)
     act1 = activation_relu(conv1)
     print("act1.shape = {}".format(act1.get_shape()))
 
@@ -212,7 +216,8 @@ def LeNet(x):
     print("fc1.shape = {}".format(fc1.get_shape()))
     
     # TODO: Activation.
-    act2 = activation_relu(fc1)
+    #act2 = activation_relu(fc1)
+    act2 = activation_sigmoid(fc1)
     print("act2.shape = {}".format(act2.get_shape()))
 
     # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
@@ -220,7 +225,8 @@ def LeNet(x):
     print("fc2.shape = {}".format(fc2.get_shape()))
     
     # TODO: Activation.
-    act3 = activation_relu(fc2)
+    #act3 = activation_relu(fc2)
+    act3 = activation_sigmoid(fc2)
     print("act3.shape = {}".format(act3.get_shape()))
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = 10.
