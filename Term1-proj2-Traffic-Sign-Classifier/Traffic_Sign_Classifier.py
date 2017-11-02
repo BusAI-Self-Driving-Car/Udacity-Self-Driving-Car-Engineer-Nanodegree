@@ -22,7 +22,7 @@
 # ---
 # ## Step 0: Load The Data
 
-# In[1]:
+# In[249]:
 
 
 # Load pickled data
@@ -30,9 +30,9 @@ import pickle
 
 # TODO: Fill this in based on where you saved the training and testing data
 
-training_file = "./examples/traffic-signs-data/train.p"
-validation_file="./examples/traffic-signs-data/valid.p"
-testing_file = "./examples/traffic-signs-data/test.p"
+training_file = "../../data/traffic-signs-data/train.p"
+validation_file="../../data/traffic-signs-data/valid.p"
+testing_file = "../../data/traffic-signs-data/test.p"
 
 with open(training_file, mode='rb') as f:
     train = pickle.load(f)
@@ -68,7 +68,7 @@ print("y_test shape:", y_test.shape)
 
 # ### Provide a Basic Summary of the Data Set Using Python, Numpy and/or Pandas
 
-# In[4]:
+# In[250]:
 
 
 import numpy as np
@@ -105,7 +105,7 @@ print("Number of classes =", n_classes)
 # 
 # **NOTE:** It's recommended you start with something simple first. If you wish to do more, come back to it after you've completed the rest of the sections. It can be interesting to look at the distribution of classes in the training, validation and test set. Is the distribution the same? Are there more examples of some classes than others?
 
-# In[16]:
+# In[251]:
 
 
 ### Data exploration visualization code goes here.
@@ -113,13 +113,16 @@ print("Number of classes =", n_classes)
 import random
 import matplotlib.pyplot as plt
 # Visualizations will be shown in the notebook.
-#get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('matplotlib', 'inline')
+
+# Visualizations will be shown in the notebook.
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 index = random.randint(0, len(X_train))
 image = X_train[index].squeeze()
 
-#plt.figure(figsize=(1,1))
-#plt.imshow(image, cmap="gray")
+plt.figure(figsize=(1,1))
+plt.imshow(image, cmap="gray")
 print(y_train[index])
 
 
@@ -150,48 +153,96 @@ print(y_train[index])
 # 
 # Use the code cell (or multiple code cells, if necessary) to implement the first step of your project.
 
-# In[4]:
+# In[252]:
 
 
 ### Preprocess the data here. It is required to normalize the data. Other preprocessing steps could include 
 ### converting to grayscale, etc.
 ### Feel free to use as many code cells as needed.
+import cv2
 from sklearn.utils import shuffle
 
-def preprocess_images(X_in):
+def visualize_images(X, y, color_map=None):
+    random.seed(8952)
+    
+    # show image of 10 random data points
+    fig, axs = plt.subplots(2,5, figsize=(15, 6))
+    fig.subplots_adjust(hspace = .2, wspace=.001)
+    axs = axs.ravel()
+    for i in range(10):
+        index = random.randint(0, len(X))
+        
+        if color_map=='gray':
+            image = X[index].squeeze()
+        else:
+            image = X[index]
+                
+        axs[i].axis('off')
+        axs[i].imshow(image, color_map)
+        axs[i].set_title(y[index])
 
-    X = np.float32(X_in)
+def grayscale(img):
+    """Applies the Grayscale transform
+    This will return an image with only one color channel
+    but NOTE: to see the returned image as grayscale
+    (assuming your grayscaled image is called 'gray')
+    you should call plt.imshow(gray, cmap='gray')"""
+    return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # Or use BGR2GRAY if you read an image with cv2.imread()
+    # return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+
+def preprocess_images(X, do_rgb2gray=True):
+
+    if do_rgb2gray:
+        print("Image data shape(before grayscaling) =", X.shape)        
+        X = np.expand_dims(np.array([grayscale(img) for img in X]), 4)
+        
+    # Equalize image intensity histogram (improve image contrast)
+    X = np.array([np.expand_dims(cv2.equalizeHist(np.uint8(img)), 2) for img in X])
+        
+    print("Image data shape(after grayscaling) =", X.shape)
+   
+    X = np.float32(X)
 
     # standardize features
-    X -= 128.
-    X /= 128.
+    #X -= 128.
+    X -= np.mean(X, axis=0)
+
+    #X /= 128.
+    X /= (np.std(X, axis=0) + np.finfo('float32').eps)
+    print("Image data shape(after normalization) =", X.shape)
 
     return X
 
-X_train = preprocess_images(X_train)
-X_test = preprocess_images(X_test)
-X_valid = preprocess_images(X_valid)
+print("Training data:")
+visualize_images(X_train, y_train)
+X_train = preprocess_images(X_train, do_rgb2gray=True)
+visualize_images(X_train, y_train, color_map='gray')
+print("")
+
+print("Test data:")
+X_test = preprocess_images(X_test, do_rgb2gray=True)
+print("")
+
+print("Validation data:")
+X_valid = preprocess_images(X_valid, do_rgb2gray=True)
+print("")
 
 X_train, y_train = shuffle(X_train, y_train)
 X_test, y_test = shuffle(X_test, y_test)
 X_valid, y_valid = shuffle(X_valid, y_valid)
 
+image_shape = X_train[0].shape
+print("Image data shape(after preproc.) =", image_shape)
+
 
 # ### Model Architecture
 
-# In[ ]:
+# In[253]:
 
 
 ### Define your architecture here.
 ### Feel free to use as many code cells as needed.
-
-
-# ### Train, Validate and Test the Model
-
-# A validation set can be used to assess how well the model is performing. A low accuracy on the training and validation
-# sets imply underfitting. A high accuracy on the training set but low accuracy on the validation set implies overfitting.
-
-# In[1]:
 from tensorflow.contrib.layers import flatten
 
 def conv2d(x, W, b, strides=1):
@@ -217,7 +268,7 @@ def LeNet(x):
     sigma = 0.1
 
     weights = {
-        'w_conv_1': tf.Variable(tf.truncated_normal((5, 5, image_shape[3], 6), mean=mu, stddev=sigma)),
+        'w_conv_1': tf.Variable(tf.truncated_normal((5, 5, image_shape[2], 6), mean=mu, stddev=sigma)),
         'w_conv_2': tf.Variable(tf.truncated_normal((5, 5, 6, 16), mean=mu, stddev=sigma)),
         'w_fc_1': tf.Variable(tf.truncated_normal((400, 120), mean=mu, stddev=sigma)),
         'w_fc_2': tf.Variable(tf.truncated_normal((120, 84), mean=mu, stddev=sigma)),
@@ -232,13 +283,15 @@ def LeNet(x):
         'b_fc_3': tf.Variable(tf.zeros(n_classes))
     }
     
+    print("\n")
+
     # TODO: Layer 1: Convolutional. Input = image_shape. Output = 28x28x6.
-    conv1 = conv2d(x, weights['w_conv_1'], biases['b_conv_1'], strides=1)
+    conv1 = conv2d(x, weights['w_conv_1'], biases['b_conv_1'], strides=1)    
     print("conv1.shape = {}".format(conv1.get_shape()))
 
     # TODO: Activation.
-    #act1 = activation_relu(conv1)
-    act1 = activation_relu(conv1)
+    #act1 = activation_relu(conv1)    
+    act1 = activation_sigmoid(conv1)
     print("act1.shape = {}".format(act1.get_shape()))
 
     # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
@@ -250,7 +303,8 @@ def LeNet(x):
     print("conv2.shape = {}".format(conv2.get_shape()))
     
     # TODO: Activation.
-    act2 = activation_relu(conv2)
+    #act2 = activation_relu(conv2)
+    act2 = activation_sigmoid(conv2)
     print("act2.shape = {}".format(act2.get_shape()))
 
     # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
@@ -266,24 +320,34 @@ def LeNet(x):
     print("fc1.shape = {}".format(fc1.get_shape()))
     
     # TODO: Activation.
-    #act2 = activation_relu(fc1)
-    act2 = activation_sigmoid(fc1)
-    print("act2.shape = {}".format(act2.get_shape()))
+    #act3 = activation_relu(fc1)
+    act3 = activation_sigmoid(fc1)
+    print("act3.shape = {}".format(act3.get_shape()))
 
     # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2 = full_connection(act2, weights['w_fc_2'], biases['b_fc_2'])
+    fc2 = full_connection(act3, weights['w_fc_2'], biases['b_fc_2'])
     print("fc2.shape = {}".format(fc2.get_shape()))
     
     # TODO: Activation.
-    #act3 = activation_relu(fc2)
-    act3 = activation_sigmoid(fc2)
-    print("act3.shape = {}".format(act3.get_shape()))
+    #act4 = activation_relu(fc2)
+    act4 = activation_sigmoid(fc2)
+    print("act4.shape = {}".format(act4.get_shape()))
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = n_classes.
-    logits = full_connection(act3, weights['w_fc_3'], biases['b_fc_3'])
+    logits = full_connection(act4, weights['w_fc_3'], biases['b_fc_3'])
     print("logits.shape = {}".format(logits.get_shape()))
+
+    print("\n")
     
     return logits
+
+
+# ### Train, Validate and Test the Model
+
+# A validation set can be used to assess how well the model is performing. A low accuracy on the training and validation
+# sets imply underfitting. A high accuracy on the training set but low accuracy on the validation set implies overfitting.
+
+# In[254]:
 
 
 ### Train your model here.
@@ -291,9 +355,15 @@ def LeNet(x):
 ### Once a final model architecture is selected, 
 ### the accuracy on the test set should be calculated and reported as well.
 ### Feel free to use as many code cells as needed.
+# ## Setup TensorFlow
+# The `EPOCH` and `BATCH_SIZE` values affect the training speed and model accuracy.
+import tensorflow as tf
+
+EPOCHS = 30 #originally was: 10
+BATCH_SIZE = 128
 
 # Set up tensorflow variables
-x = tf.placeholder(tf.float32, (None, 32, 32, image_shape[3]))
+x = tf.placeholder(tf.float32, (None, 32, 32, image_shape[2]))
 y = tf.placeholder(tf.int32, (None))
 one_hot_y = tf.one_hot(y, n_classes)
 
@@ -341,9 +411,10 @@ with tf.Session() as sess:
             batch_x, batch_y = X_train[offset:end], y_train[offset:end]
             sess.run(training_operation, feed_dict={x: batch_x, y: batch_y})
             
-        validation_accuracy = evaluate(X_validation, y_validation)
+        training_accuracy = evaluate(X_train, y_train)
+        validation_accuracy = evaluate(X_valid, y_valid)
         print("EPOCH {} ...".format(i+1))
-        print("Validation Accuracy = {:.3f}".format(validation_accuracy))
+        print("Accuracy. Training: {:.3f}, Validation: {:.3f}".format(training_accuracy, validation_accuracy))
         print()
         
     saver.save(sess, './lenet')
@@ -364,7 +435,6 @@ with tf.Session() as sess:
     print("Test Accuracy = {:.3f}".format(test_accuracy))
 
 
-
 # ---
 # 
 # ## Step 3: Test a Model on New Images
@@ -375,21 +445,53 @@ with tf.Session() as sess:
 
 # ### Load and Output the Images
 
-# In[ ]:
+# In[241]:
 
+
+import os
 
 ### Load the images and plot them here.
 ### Feel free to use as many code cells as needed.
+dir_traffic_signs = "./traffic_signs/cropped"
+
+sign_images = [os.path.join(dir_traffic_signs, f) for f in os.listdir(dir_traffic_signs)]
+print ("sign images: {}".format(sign_images))
+sign_imgs = np.array([cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2RGB) for f in sign_images])
+             
+sign_labels = [25, 14]
+             
+fig, axarray = plt.subplots(1, len(sign_imgs))
+for i, ax in enumerate(axarray.ravel()):
+    ax.imshow(sign_imgs[i])
+    ax.set_title('{}'.format(sign_labels[i]))
+    plt.setp(ax.get_xticklabels(), visible=False)
+    plt.setp(ax.get_yticklabels(), visible=False)
+    ax.set_xticks([]), ax.set_yticks([])
 
 
 # ### Predict the Sign Type for Each Image
 
-# In[3]:
+# In[242]:
 
 
 ### Run the predictions here and use the model to output the prediction for each image.
 ### Make sure to pre-process the images with the same pre-processing pipeline used earlier.
 ### Feel free to use as many code cells as needed.
+sign_imgs = preprocess_images(sign_imgs, do_rgb2gray=True)
+#visualize_images(sign_imgs, sign_labels, color_map='gray')
+
+with tf.Session() as sess:
+    saver.restore(sess, tf.train.latest_checkpoint('.'))
+    
+    # predict on unseen images
+    prediction = np.argmax(np.array(sess.run(logits, feed_dict={x: sign_imgs})), axis=1)
+
+
+print("\n")
+for i, pred in enumerate(prediction):
+    print('Image {} - Target = {:02d}, Predicted = {:02d}'.format(i, sign_labels[i], pred))
+    
+print('> Model accuracy: {:.02f}'.format(np.sum(sign_labels==prediction)/len(sign_labels)))
 
 
 # ### Analyze Performance
