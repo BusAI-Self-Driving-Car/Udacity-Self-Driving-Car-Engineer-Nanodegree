@@ -22,7 +22,7 @@
 # ---
 # ## Step 0: Load The Data
 
-# In[56]:
+# In[224]:
 
 
 # Load pickled data
@@ -68,7 +68,7 @@ print("y_test shape:", y_test.shape)
 
 # ### Provide a Basic Summary of the Data Set Using Python, Numpy and/or Pandas
 
-# In[57]:
+# In[225]:
 
 
 import numpy as np
@@ -105,7 +105,7 @@ print("Number of classes =", n_classes)
 # 
 # **NOTE:** It's recommended you start with something simple first. If you wish to do more, come back to it after you've completed the rest of the sections. It can be interesting to look at the distribution of classes in the training, validation and test set. Is the distribution the same? Are there more examples of some classes than others?
 
-# In[58]:
+# In[226]:
 
 
 ### Data exploration visualization code goes here.
@@ -153,7 +153,7 @@ print(y_train[index])
 # 
 # Use the code cell (or multiple code cells, if necessary) to implement the first step of your project.
 
-# In[59]:
+# In[227]:
 
 
 ### Preprocess the data here. It is required to normalize the data. Other preprocessing steps could include 
@@ -236,9 +236,11 @@ image_shape = X_train[0].shape
 print("Image data shape(after preproc.) =", image_shape)
 
 
+# Go to <a href=#bookmark>my bookmark</a>
+
 # ### Model Architecture
 
-# In[60]:
+# In[228]:
 
 
 ### Define your architecture here.
@@ -290,12 +292,14 @@ def LeNet(x):
     print("conv1.shape = {}".format(conv1.get_shape()))
 
     # TODO: Activation.
-    #act1 = activation_relu(conv1)    
-    act1 = activation_sigmoid(conv1)
+    act1 = activation_relu(conv1)    
+    #act1 = activation_sigmoid(conv1)
     print("act1.shape = {}".format(act1.get_shape()))
+    
+    d1 = tf.nn.dropout(act1, keep_prob=keep_prob)
 
     # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
-    pool1 = maxpool2d(act1, k=2)
+    pool1 = maxpool2d(d1, k=2)
     print("pool1.shape = {}".format(pool1.get_shape()))
 
     # TODO: Layer 2: Convolutional. Output = 10x10x16.
@@ -303,12 +307,14 @@ def LeNet(x):
     print("conv2.shape = {}".format(conv2.get_shape()))
     
     # TODO: Activation.
-    #act2 = activation_relu(conv2)
-    act2 = activation_sigmoid(conv2)
+    act2 = activation_relu(conv2)
+    #act2 = activation_sigmoid(conv2)
     print("act2.shape = {}".format(act2.get_shape()))
+    
+    d2 = tf.nn.dropout(act2, keep_prob=keep_prob)
 
     # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
-    pool2 = maxpool2d(act2, k=2)
+    pool2 = maxpool2d(d2, k=2)
     print("pool2.shape = {}".format(pool2.get_shape()))
 
     # TODO: Flatten. Input = 5x5x16. Output = 400.
@@ -320,25 +326,25 @@ def LeNet(x):
     print("fc1.shape = {}".format(fc1.get_shape()))
     
     # TODO: Activation.
-    #act3 = activation_relu(fc1)
-    act3 = activation_sigmoid(fc1)
+    act3 = activation_relu(fc1)
+    #act3 = activation_sigmoid(fc1)
     print("act3.shape = {}".format(act3.get_shape()))
     
-    d1 = tf.nn.dropout(act3, keep_prob=keep_prob)
+    d3 = tf.nn.dropout(act3, keep_prob=keep_prob)
 
     # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2 = full_connection(d1, weights['w_fc_2'], biases['b_fc_2'])
+    fc2 = full_connection(d3, weights['w_fc_2'], biases['b_fc_2'])
     print("fc2.shape = {}".format(fc2.get_shape()))
     
     # TODO: Activation.
-    #act4 = activation_relu(fc2)
-    act4 = activation_sigmoid(fc2)
+    act4 = activation_relu(fc2)
+    #act4 = activation_sigmoid(fc2)
     print("act4.shape = {}".format(act4.get_shape()))
     
-    d2 = tf.nn.dropout(act4, keep_prob=keep_prob)
+    d4 = tf.nn.dropout(act4, keep_prob=keep_prob)
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = n_classes.
-    logits = full_connection(d2, weights['w_fc_3'], biases['b_fc_3'])
+    logits = full_connection(d4, weights['w_fc_3'], biases['b_fc_3'])
     print("logits.shape = {}".format(logits.get_shape()))
 
     print("\n")
@@ -346,12 +352,14 @@ def LeNet(x):
     return logits
 
 
+# Go to <a href=#bookmark>my bookmark</a>
+
 # ### Train, Validate and Test the Model
 
 # A validation set can be used to assess how well the model is performing. A low accuracy on the training and validation
 # sets imply underfitting. A high accuracy on the training set but low accuracy on the validation set implies overfitting.
 
-# In[61]:
+# In[229]:
 
 
 ### Train your model here.
@@ -363,7 +371,7 @@ def LeNet(x):
 # The `EPOCH` and `BATCH_SIZE` values affect the training speed and model accuracy.
 import tensorflow as tf
 
-EPOCHS = 30 #originally was: 10
+EPOCHS = 25 #originally was: 10
 BATCH_SIZE = 128
 
 # Set up tensorflow variables
@@ -374,7 +382,7 @@ keep_prob = tf.placeholder(tf.float32)
 one_hot_y = tf.one_hot(y, n_classes)
 
 # Training Pipeline
-rate = 0.001
+rate = 0.001/1.4
 
 logits = LeNet(x)
 cross_entropy = tf.nn.softmax_cross_entropy_with_logits(labels=one_hot_y, logits=logits)
@@ -415,13 +423,12 @@ with tf.Session() as sess:
         for offset in range(0, num_examples, BATCH_SIZE):
             end = offset + BATCH_SIZE
             batch_x, batch_y = X_train[offset:end], y_train[offset:end]
-            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.75})
+            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.85})
             
         training_accuracy = evaluate(X_train, y_train)
         validation_accuracy = evaluate(X_valid, y_valid)
-        print("EPOCH {} ...".format(i+1))
-        print("Accuracy. Training: {:.3f}, Validation: {:.3f}".format(training_accuracy, validation_accuracy))
-        print()
+        print("EPOCH {}: Accuracy. Training: {:.3f}, Validation: {:.3f}".format(i+1, 
+                                                                                training_accuracy, validation_accuracy))
         
     saver.save(sess, './lenet')
     print("Model saved")
@@ -441,6 +448,8 @@ with tf.Session() as sess:
     print("Test Accuracy = {:.3f}".format(test_accuracy))
 
 
+# Go to <a href=#bookmark>my bookmark</a>
+
 # ---
 # 
 # ## Step 3: Test a Model on New Images
@@ -451,7 +460,7 @@ with tf.Session() as sess:
 
 # ### Load and Output the Images
 
-# In[62]:
+# In[230]:
 
 
 import os
@@ -476,7 +485,7 @@ for f in sign_images:
 sign_imgs = np.array(sign_imgs)
 print("Image data shape = {}".format(sign_imgs.shape))
 
-sign_labels = [1, 12, 13, 14, 17, 38, 99]
+sign_labels = [17, 12, 14, 13, 1, 38]
              
 fig, axarray = plt.subplots(1, len(sign_imgs))
 for i, ax in enumerate(axarray.ravel()):
@@ -487,9 +496,11 @@ for i, ax in enumerate(axarray.ravel()):
     ax.set_xticks([]), ax.set_yticks([])
 
 
+# Go to <a href=#bookmark>my bookmark</a>
+
 # ### Predict the Sign Type for Each Image
 
-# In[63]:
+# In[231]:
 
 
 ### Run the predictions here and use the model to output the prediction for each image.
@@ -511,6 +522,8 @@ for i, pred in enumerate(prediction):
     
 print('> Model accuracy: {:.02f}'.format(np.sum(sign_labels==prediction)/len(sign_labels)))
 
+
+# --> RA-bookmark <a name='bookmark' />
 
 # ### Analyze Performance
 
