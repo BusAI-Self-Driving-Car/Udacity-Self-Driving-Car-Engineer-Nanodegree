@@ -22,7 +22,7 @@
 # ---
 # ## Step 0: Load The Data
 
-# In[249]:
+# In[56]:
 
 
 # Load pickled data
@@ -68,7 +68,7 @@ print("y_test shape:", y_test.shape)
 
 # ### Provide a Basic Summary of the Data Set Using Python, Numpy and/or Pandas
 
-# In[250]:
+# In[57]:
 
 
 import numpy as np
@@ -105,7 +105,7 @@ print("Number of classes =", n_classes)
 # 
 # **NOTE:** It's recommended you start with something simple first. If you wish to do more, come back to it after you've completed the rest of the sections. It can be interesting to look at the distribution of classes in the training, validation and test set. Is the distribution the same? Are there more examples of some classes than others?
 
-# In[251]:
+# In[58]:
 
 
 ### Data exploration visualization code goes here.
@@ -153,7 +153,7 @@ print(y_train[index])
 # 
 # Use the code cell (or multiple code cells, if necessary) to implement the first step of your project.
 
-# In[252]:
+# In[59]:
 
 
 ### Preprocess the data here. It is required to normalize the data. Other preprocessing steps could include 
@@ -238,7 +238,7 @@ print("Image data shape(after preproc.) =", image_shape)
 
 # ### Model Architecture
 
-# In[253]:
+# In[60]:
 
 
 ### Define your architecture here.
@@ -323,18 +323,22 @@ def LeNet(x):
     #act3 = activation_relu(fc1)
     act3 = activation_sigmoid(fc1)
     print("act3.shape = {}".format(act3.get_shape()))
+    
+    d1 = tf.nn.dropout(act3, keep_prob=keep_prob)
 
     # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
-    fc2 = full_connection(act3, weights['w_fc_2'], biases['b_fc_2'])
+    fc2 = full_connection(d1, weights['w_fc_2'], biases['b_fc_2'])
     print("fc2.shape = {}".format(fc2.get_shape()))
     
     # TODO: Activation.
     #act4 = activation_relu(fc2)
     act4 = activation_sigmoid(fc2)
     print("act4.shape = {}".format(act4.get_shape()))
+    
+    d2 = tf.nn.dropout(act4, keep_prob=keep_prob)
 
     # TODO: Layer 5: Fully Connected. Input = 84. Output = n_classes.
-    logits = full_connection(act4, weights['w_fc_3'], biases['b_fc_3'])
+    logits = full_connection(d2, weights['w_fc_3'], biases['b_fc_3'])
     print("logits.shape = {}".format(logits.get_shape()))
 
     print("\n")
@@ -347,7 +351,7 @@ def LeNet(x):
 # A validation set can be used to assess how well the model is performing. A low accuracy on the training and validation
 # sets imply underfitting. A high accuracy on the training set but low accuracy on the validation set implies overfitting.
 
-# In[254]:
+# In[61]:
 
 
 ### Train your model here.
@@ -365,6 +369,8 @@ BATCH_SIZE = 128
 # Set up tensorflow variables
 x = tf.placeholder(tf.float32, (None, 32, 32, image_shape[2]))
 y = tf.placeholder(tf.int32, (None))
+keep_prob = tf.placeholder(tf.float32)
+
 one_hot_y = tf.one_hot(y, n_classes)
 
 # Training Pipeline
@@ -388,7 +394,7 @@ def evaluate(X_data, y_data):
     sess = tf.get_default_session()
     for offset in range(0, num_examples, BATCH_SIZE):
         batch_x, batch_y = X_data[offset:offset+BATCH_SIZE], y_data[offset:offset+BATCH_SIZE]
-        accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y})
+        accuracy = sess.run(accuracy_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 1.})
         total_accuracy += (accuracy * len(batch_x))
     return total_accuracy / num_examples
 
@@ -409,7 +415,7 @@ with tf.Session() as sess:
         for offset in range(0, num_examples, BATCH_SIZE):
             end = offset + BATCH_SIZE
             batch_x, batch_y = X_train[offset:end], y_train[offset:end]
-            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y})
+            sess.run(training_operation, feed_dict={x: batch_x, y: batch_y, keep_prob: 0.75})
             
         training_accuracy = evaluate(X_train, y_train)
         validation_accuracy = evaluate(X_valid, y_valid)
@@ -445,20 +451,32 @@ with tf.Session() as sess:
 
 # ### Load and Output the Images
 
-# In[241]:
+# In[62]:
 
 
 import os
+#import cv2
 
 ### Load the images and plot them here.
 ### Feel free to use as many code cells as needed.
-dir_traffic_signs = "./traffic_signs/cropped"
-
+dir_traffic_signs = "traffic_signs/"
 sign_images = [os.path.join(dir_traffic_signs, f) for f in os.listdir(dir_traffic_signs)]
 print ("sign images: {}".format(sign_images))
-sign_imgs = np.array([cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2RGB) for f in sign_images])
-             
-sign_labels = [25, 14]
+
+#img = cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2RGB)
+#print("Image shape = {}".format(img.shape))
+
+sign_imgs = []
+for f in sign_images:
+    img = cv2.cvtColor(cv2.imread(f), cv2.COLOR_BGR2RGB)
+    print("Image shape = {}".format(img.shape))
+    resized_image = cv2.resize(img, (32, 32))
+    sign_imgs.append(resized_image)
+
+sign_imgs = np.array(sign_imgs)
+print("Image data shape = {}".format(sign_imgs.shape))
+
+sign_labels = [1, 12, 13, 14, 17, 38, 99]
              
 fig, axarray = plt.subplots(1, len(sign_imgs))
 for i, ax in enumerate(axarray.ravel()):
@@ -471,7 +489,7 @@ for i, ax in enumerate(axarray.ravel()):
 
 # ### Predict the Sign Type for Each Image
 
-# In[242]:
+# In[63]:
 
 
 ### Run the predictions here and use the model to output the prediction for each image.
@@ -484,12 +502,12 @@ with tf.Session() as sess:
     saver.restore(sess, tf.train.latest_checkpoint('.'))
     
     # predict on unseen images
-    prediction = np.argmax(np.array(sess.run(logits, feed_dict={x: sign_imgs})), axis=1)
+    prediction = np.argmax(np.array(sess.run(logits, feed_dict={x: sign_imgs, keep_prob: 1.0})), axis=1)
 
 
 print("\n")
 for i, pred in enumerate(prediction):
-    print('Image {} - Target = {:02d}, Predicted = {:02d}'.format(i, sign_labels[i], pred))
+    print('Image {} - Actual = {:02d}, Predicted = {:02d}'.format(i, sign_labels[i], pred))
     
 print('> Model accuracy: {:.02f}'.format(np.sum(sign_labels==prediction)/len(sign_labels)))
 
