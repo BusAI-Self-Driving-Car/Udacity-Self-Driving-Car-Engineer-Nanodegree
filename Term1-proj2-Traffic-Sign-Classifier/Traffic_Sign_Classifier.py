@@ -22,7 +22,7 @@
 # ---
 # ## Step 0: Load The Data
 
-# In[224]:
+# In[426]:
 
 
 # Load pickled data
@@ -68,7 +68,7 @@ print("y_test shape:", y_test.shape)
 
 # ### Provide a Basic Summary of the Data Set Using Python, Numpy and/or Pandas
 
-# In[225]:
+# In[427]:
 
 
 import numpy as np
@@ -105,7 +105,7 @@ print("Number of classes =", n_classes)
 # 
 # **NOTE:** It's recommended you start with something simple first. If you wish to do more, come back to it after you've completed the rest of the sections. It can be interesting to look at the distribution of classes in the training, validation and test set. Is the distribution the same? Are there more examples of some classes than others?
 
-# In[226]:
+# In[428]:
 
 
 ### Data exploration visualization code goes here.
@@ -118,12 +118,50 @@ get_ipython().run_line_magic('matplotlib', 'inline')
 # Visualizations will be shown in the notebook.
 get_ipython().run_line_magic('matplotlib', 'inline')
 
-index = random.randint(0, len(X_train))
-image = X_train[index].squeeze()
 
-plt.figure(figsize=(1,1))
-plt.imshow(image, cmap="gray")
-print(y_train[index])
+def visualize_images(X, y, num_random_imgs=10, color_map=None):
+    random.seed(8952)
+    
+    fig, axs = plt.subplots(int(num_random_imgs/5), 5, figsize=(15, 6))
+    fig.subplots_adjust(hspace = .2, wspace=.001)
+    axs = axs.ravel()
+    for i in range(num_random_imgs):
+        index = random.randint(0, len(X))
+        
+        if color_map=='gray':
+            image = X[index].squeeze()
+        else:
+            image = X[index]
+                
+        axs[i].axis('off')
+        axs[i].imshow(image, color_map)
+        axs[i].set_title(y[index])
+
+visualize_images(X_train, y_train, num_random_imgs=15)
+
+
+# In[429]:
+
+
+# Visualization of the distribution of traffic signs in the dataset
+
+print("len(y_train) = {}".format(len(y_train)))
+# print("#occurences of label #5 in y_train = {}".format(len(y_train[y_train==5])))
+
+num_occurences_of_label = np.zeros(n_classes)
+for label in range(n_classes):    
+    num_occurences_of_label[label] = (len(y_train[y_train==label]))
+
+fig = plt.figure(figsize=(10,5))
+ax = fig.add_subplot(111)
+ax.bar(np.arange(n_classes), num_occurences_of_label)
+ax.set_ylabel('Number of Occurences')
+ax.set_xlabel('Traffic-sign Labels')
+ax.set_title('Distribution of traffic signs in the dataset')
+
+# # We can also plot using the histogram function
+# plt.hist(y_train, bins=n_classes)
+# plt.xlim(xmax=n_classes-1)
 
 
 # ----
@@ -153,7 +191,7 @@ print(y_train[index])
 # 
 # Use the code cell (or multiple code cells, if necessary) to implement the first step of your project.
 
-# In[227]:
+# In[430]:
 
 
 ### Preprocess the data here. It is required to normalize the data. Other preprocessing steps could include 
@@ -161,25 +199,6 @@ print(y_train[index])
 ### Feel free to use as many code cells as needed.
 import cv2
 from sklearn.utils import shuffle
-
-def visualize_images(X, y, color_map=None):
-    random.seed(8952)
-    
-    # show image of 10 random data points
-    fig, axs = plt.subplots(2,5, figsize=(15, 6))
-    fig.subplots_adjust(hspace = .2, wspace=.001)
-    axs = axs.ravel()
-    for i in range(10):
-        index = random.randint(0, len(X))
-        
-        if color_map=='gray':
-            image = X[index].squeeze()
-        else:
-            image = X[index]
-                
-        axs[i].axis('off')
-        axs[i].imshow(image, color_map)
-        axs[i].set_title(y[index])
 
 def grayscale(img):
     """Applies the Grayscale transform
@@ -240,7 +259,7 @@ print("Image data shape(after preproc.) =", image_shape)
 
 # ### Model Architecture
 
-# In[228]:
+# In[431]:
 
 
 ### Define your architecture here.
@@ -287,63 +306,63 @@ def LeNet(x):
     
     print("\n")
 
-    # TODO: Layer 1: Convolutional. Input = image_shape. Output = 28x28x6.
+    # Layer 1: Convolutional. Input = image_shape. Output = 28x28x6.
     conv1 = conv2d(x, weights['w_conv_1'], biases['b_conv_1'], strides=1)    
     print("conv1.shape = {}".format(conv1.get_shape()))
 
-    # TODO: Activation.
+    # Activation.
     act1 = activation_relu(conv1)    
     #act1 = activation_sigmoid(conv1)
     print("act1.shape = {}".format(act1.get_shape()))
     
     d1 = tf.nn.dropout(act1, keep_prob=keep_prob)
 
-    # TODO: Pooling. Input = 28x28x6. Output = 14x14x6.
+    # Pooling. Input = 28x28x6. Output = 14x14x6.
     pool1 = maxpool2d(d1, k=2)
     print("pool1.shape = {}".format(pool1.get_shape()))
 
-    # TODO: Layer 2: Convolutional. Output = 10x10x16.
+    # Layer 2: Convolutional. Output = 10x10x16.
     conv2 = conv2d(pool1, weights['w_conv_2'], biases['b_conv_2'], strides=1)
     print("conv2.shape = {}".format(conv2.get_shape()))
     
-    # TODO: Activation.
+    # Activation.
     act2 = activation_relu(conv2)
     #act2 = activation_sigmoid(conv2)
     print("act2.shape = {}".format(act2.get_shape()))
     
     d2 = tf.nn.dropout(act2, keep_prob=keep_prob)
 
-    # TODO: Pooling. Input = 10x10x16. Output = 5x5x16.
+    # Pooling. Input = 10x10x16. Output = 5x5x16.
     pool2 = maxpool2d(d2, k=2)
     print("pool2.shape = {}".format(pool2.get_shape()))
 
-    # TODO: Flatten. Input = 5x5x16. Output = 400.
+    # Flatten. Input = 5x5x16. Output = 400.
     x_flat = flatten(pool2)
     print("x_flat.shape = {}".format(x_flat.get_shape()))
 
-    # TODO: Layer 3: Fully Connected. Input = 400. Output = 120.
+    # Layer 3: Fully Connected. Input = 400. Output = 120.
     fc1 = full_connection(x_flat, weights['w_fc_1'], biases['b_fc_1'])
     print("fc1.shape = {}".format(fc1.get_shape()))
     
-    # TODO: Activation.
+    # Activation.
     act3 = activation_relu(fc1)
     #act3 = activation_sigmoid(fc1)
     print("act3.shape = {}".format(act3.get_shape()))
     
     d3 = tf.nn.dropout(act3, keep_prob=keep_prob)
 
-    # TODO: Layer 4: Fully Connected. Input = 120. Output = 84.
+    # Layer 4: Fully Connected. Input = 120. Output = 84.
     fc2 = full_connection(d3, weights['w_fc_2'], biases['b_fc_2'])
     print("fc2.shape = {}".format(fc2.get_shape()))
     
-    # TODO: Activation.
+    # Activation.
     act4 = activation_relu(fc2)
     #act4 = activation_sigmoid(fc2)
     print("act4.shape = {}".format(act4.get_shape()))
     
     d4 = tf.nn.dropout(act4, keep_prob=keep_prob)
 
-    # TODO: Layer 5: Fully Connected. Input = 84. Output = n_classes.
+    # Layer 5: Fully Connected. Input = 84. Output = n_classes.
     logits = full_connection(d4, weights['w_fc_3'], biases['b_fc_3'])
     print("logits.shape = {}".format(logits.get_shape()))
 
@@ -359,7 +378,7 @@ def LeNet(x):
 # A validation set can be used to assess how well the model is performing. A low accuracy on the training and validation
 # sets imply underfitting. A high accuracy on the training set but low accuracy on the validation set implies overfitting.
 
-# In[229]:
+# In[432]:
 
 
 ### Train your model here.
@@ -460,11 +479,27 @@ with tf.Session() as sess:
 
 # ### Load and Output the Images
 
-# In[230]:
+# In[433]:
 
 
 import os
 #import cv2
+
+## Images credit: github.com/frankkanis/CarND-Traffic-Sign-Classifier-Project/tree/master/new_signs
+
+def display_sign_imgs(X, y, color_map=None):
+    fig, axarray = plt.subplots(1, len(X))
+    
+    for i, ax in enumerate(axarray):
+        if color_map=='gray':
+            image = X[i].squeeze()
+            ax.imshow(image, color_map)
+        else:    
+            ax.imshow(X[i])
+        ax.set_title('Label {}'.format(y[i]))
+        plt.setp(ax.get_xticklabels(), visible=False)
+        plt.setp(ax.get_yticklabels(), visible=False)
+        ax.set_xticks([]), ax.set_yticks([])
 
 ### Load the images and plot them here.
 ### Feel free to use as many code cells as needed.
@@ -486,53 +521,46 @@ sign_imgs = np.array(sign_imgs)
 print("Image data shape = {}".format(sign_imgs.shape))
 
 sign_labels = [17, 12, 14, 13, 1, 38]
-             
-fig, axarray = plt.subplots(1, len(sign_imgs))
-for i, ax in enumerate(axarray.ravel()):
-    ax.imshow(sign_imgs[i])
-    ax.set_title('{}'.format(sign_labels[i]))
-    plt.setp(ax.get_xticklabels(), visible=False)
-    plt.setp(ax.get_yticklabels(), visible=False)
-    ax.set_xticks([]), ax.set_yticks([])
+
+display_sign_imgs(sign_imgs, sign_labels, color_map=None)
 
 
 # Go to <a href=#bookmark>my bookmark</a>
 
 # ### Predict the Sign Type for Each Image
 
-# In[231]:
+# In[434]:
 
 
 ### Run the predictions here and use the model to output the prediction for each image.
 ### Make sure to pre-process the images with the same pre-processing pipeline used earlier.
 ### Feel free to use as many code cells as needed.
-sign_imgs = preprocess_images(sign_imgs, do_rgb2gray=True)
-#visualize_images(sign_imgs, sign_labels, color_map='gray')
+preproc_sign_imgs = preprocess_images(sign_imgs, do_rgb2gray=True)
+# display_sign_imgs(preproc_sign_imgs, sign_labels, color_map='gray')
 
 with tf.Session() as sess:
     saver.restore(sess, tf.train.latest_checkpoint('.'))
     
     # predict on unseen images
-    prediction = np.argmax(np.array(sess.run(logits, feed_dict={x: sign_imgs, keep_prob: 1.0})), axis=1)
+    prediction = np.argmax(np.array(sess.run(logits, feed_dict={x: preproc_sign_imgs, keep_prob: 1.0})), axis=1)
 
 
 print("\n")
 for i, pred in enumerate(prediction):
-    print('Image {} - Actual = {:02d}, Predicted = {:02d}'.format(i, sign_labels[i], pred))
-    
-print('> Model accuracy: {:.02f}'.format(np.sum(sign_labels==prediction)/len(sign_labels)))
+    print('Image{} Actual label -->{:02d}, {:02d}<--Prediction'.format(i, sign_labels[i], pred))
 
-
-# --> RA-bookmark <a name='bookmark' />
 
 # ### Analyze Performance
 
-# In[4]:
+# In[435]:
 
 
 ### Calculate the accuracy for these 5 new images. 
 ### For example, if the model predicted 1 out of 5 signs correctly, it's 20% accurate on these new images.
+print('Model accuracy: {:.02f}'.format(np.sum(sign_labels==prediction)/len(sign_labels)))
 
+
+# Go to <a href=#bookmark>my bookmark</a>
 
 # ### Output Top 5 Softmax Probabilities For Each Image Found on the Web
 
@@ -574,12 +602,53 @@ print('> Model accuracy: {:.02f}'.format(np.sum(sign_labels==prediction)/len(sig
 # 
 # Looking just at the first row we get `[ 0.34763842,  0.24879643,  0.12789202]`, you can confirm these are the 3 largest probabilities in `a`. You'll also notice `[3, 0, 5]` are the corresponding indices.
 
-# In[3]:
+# In[436]:
 
 
 ### Print out the top five softmax probabilities for the predictions on the German traffic sign images found on the web. 
 ### Feel free to use as many code cells as needed.
+softmax_logits = tf.nn.softmax(logits)
 
+K=5
+top_k = tf.nn.top_k(softmax_logits, k=K)
+
+with tf.Session() as sess:
+    sess.run(tf.global_variables_initializer())
+    
+    saver.restore(sess, tf.train.latest_checkpoint('.'))
+    
+    softmax_logits = sess.run(softmax_logits, feed_dict={x: preproc_sign_imgs, keep_prob: 1.0})
+    top_k = sess.run(top_k, feed_dict={x: preproc_sign_imgs, keep_prob: 1.0})
+    
+n_imgs = len(sign_imgs)
+print("shape of sign_img's: {}".format(sign_imgs[0].shape))
+print("sign_labels: {}".format(sign_labels))
+
+print('Predictions and their certainties for:')
+# print top 5 predictions
+for i in range(len(sign_imgs)):
+    print()
+    print('label {:02d} -- '.format(sign_labels[i]), end='')
+    for k in range(K):
+        top_c = top_k[1][i][k]
+        print('{:02d} ({:.2f}), '.format(top_c, softmax_logits[i][top_c]), end='')
+
+fig, axarray = plt.subplots(n_imgs, 2, figsize=(15, 15))
+fig.subplots_adjust(hspace = 0.5, wspace=.02)
+for idx_img in range(n_imgs):
+    ax0 = axarray[idx_img, 0]
+    ax0.imshow(sign_imgs[idx_img].squeeze())
+    ax0.set_title('Label {}'.format(sign_labels[idx_img]))
+    
+    ax1 = axarray[idx_img, 1]
+    ax1.bar(np.arange(n_classes), softmax_logits[idx_img])
+        
+    plt.setp(ax.get_xticklabels(), visible=False)
+    plt.setp(ax.get_yticklabels(), visible=False)
+    ax.set_xticks([]), ax.set_yticks([])    
+
+
+# --> RA-bookmark <a name='bookmark' />
 
 # ### Project Writeup
 # 
