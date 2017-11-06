@@ -1,12 +1,6 @@
 # **Traffic Sign Recognition** 
 
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
-**Build a Traffic Sign Recognition Project**
+**Building a Traffic Sign Recognition Project**
 
 The goals / steps of this project are the following:
 * Load the data set (see below for links to the project data set)
@@ -111,8 +105,7 @@ My final model results were:
 * validation set accuracy of 0.942
 * test set accuracy of 0.922
 
-If an iterative approach was chosen:
-* What was the first architecture that was tried and why was it chosen?
+#### If an iterative approach was chosen, what was the first architecture that was tried and why was it chosen?
 
 I chose the LeNet-5 architecture for the following reasons:
 * I had experience with this architecture previously from this term's "LeNet Lab" lesson. 
@@ -122,11 +115,11 @@ I chose the LeNet-5 architecture for the following reasons:
 
 The main issue was overfitting. I had pretty high training accuracies, but could not get the validation accuracy to the required target of 0.93.
 
-* How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to overfitting or underfitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
+#### How was the architecture adjusted and why was it adjusted? Typical adjustments could include choosing a different model architecture, adding or taking away layers (pooling, dropout, convolution, etc), using an activation function or changing the activation function. One common justification for adjusting an architecture would be due to overfitting or underfitting. A high accuracy on the training set but low accuracy on the validation set indicates over fitting; a low accuracy on both sets indicates under fitting.
 
 A simple solution to the data overfitting problem was to include dropout layers after every RELU activation.
 
-* Which parameters were tuned? How were they adjusted and why?
+#### Which parameters were tuned? How were they adjusted and why?
 
 In an attempt to increase the validation accuracy, I initially changed the RELU activation to sigmoid. Although it did improve the accuracy, after a lot of trial and error, I converged on the following architectural changes and parameter values that gave consistently high accuracies for training, validation, as well as testing:
 * Reverted from sigmoid activation to ReLU activation units
