@@ -128,7 +128,7 @@ In an attempt to increase the validation accuracy, I initially changed the RELU 
 * EPOCHS = 25, and learning_rate = 0.001/1.4 to prevent the optimization from bouncing around
 
 
-* What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? 
+#### What are some of the important design choices and why were they chosen? For example, why might a convolution layer work well with this problem? 
 
 The traffic sign classification problem has been addressed in literature quite often, and CNNs have shown a very good performance at it (http://yann.lecun.com/exdb/publis/pdf/sermanet-ijcnn-11.pdf). CNNs are known to classify images without explicitly being programmed to look for any particular features. Also, they execute fast on low-cost GPUs. With that background information, it made sense to begin with the CNN-based LeNet architecture to tackle this problem.
  
