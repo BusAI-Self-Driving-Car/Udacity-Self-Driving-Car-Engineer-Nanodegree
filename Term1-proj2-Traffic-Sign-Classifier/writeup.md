@@ -19,7 +19,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image1]: ./examples/visualization.jpg "Visualization"
+[image1]: ./examples/visualization.png "Visualization"
 [image2]: ./examples/grayscale.jpg "Grayscaling"
 [image3]: ./examples/random_noise.jpg "Random Noise"
 
@@ -67,10 +67,6 @@ Here is an exploratory visualization of the data set. It is a bar chart showing 
 
 ####Grayscaling
 To keep the pipeline as simple as possible at the beginning and to be able to train faster, I transformed the color images to grayscale. I was also curious to see whether the goal of >0.93 validation accuracy was achievable just with grayscale images (it is achievable). Note however, that color may play an important role for the classifier to be able to distinguish between, e.g. min. speed 60 km/h and max. 60 km/h traffic signs in the German repertoire.
-
-Here is an example of a traffic sign image before and after grayscaling.
-
-![alt text][image2]
 
 
 ####Contrast enhancement
@@ -191,6 +187,7 @@ The code for making predictions on my final model is located in the 11th cell of
 
 
 For the first image -- 17_no_entry, the correct sign is identified with pretty high certainty.
+
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | .48         			| 17_no_entry   								| 
@@ -201,6 +198,7 @@ For the first image -- 17_no_entry, the correct sign is identified with pretty h
 
 
 For the second image -- 12_priority_road, the classification is completely wrong, perhaps due to the incompleteness of the traffic sign in the image. The correct class does appear at the second place though. 
+
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | .35         			| Roundabout mandatory   						| 
@@ -211,6 +209,7 @@ For the second image -- 12_priority_road, the classification is completely wrong
 
 
 For the third image -- 14_stop, the classifier is fully certain that it got the result right, and it did!
+
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | 1.         			| Stop sign   									| 
@@ -221,6 +220,7 @@ For the third image -- 14_stop, the classifier is fully certain that it got the 
 
 
 For the fourth image -- 13_yield, the correct sign is identified with pretty high relative certainty.
+
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | .77         			| 13 yield   									| 
@@ -231,6 +231,7 @@ For the fourth image -- 13_yield, the correct sign is identified with pretty hig
 
 
 For the fifth image -- 01_speed_limit_30, although the result is wrong, the classifier at least seems to think it's looking at a speed-limit sign. It seems to confuse the numbers 30, 50, and 80.
+
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | .98         			| speed limit 50 								| 
@@ -241,6 +242,7 @@ For the fifth image -- 01_speed_limit_30, although the result is wrong, the clas
 
 
 For the sixth image -- 38_keep_right, again, the classifier is fully certain that it got the result right, and it did!
+
 | Probability         	|     Prediction	        					| 
 |:---------------------:|:---------------------------------------------:| 
 | 1.         			| Keep right   									| 
@@ -256,7 +258,7 @@ For the sixth image -- 38_keep_right, again, the classifier is fully certain tha
 
 
 
-― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ―― ✂ ― ✂ ― ✂ ―
+- ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ―
 ### For the future
 ###Design and Test a Model Architecture
 #### Preprocessing
