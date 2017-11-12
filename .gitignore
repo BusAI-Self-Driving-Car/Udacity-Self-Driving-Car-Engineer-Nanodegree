@@ -6,6 +6,7 @@ train.p
 test.p
 valid.p
 
+*.DS_Store
 *.gz
 *.data*
 *.index
