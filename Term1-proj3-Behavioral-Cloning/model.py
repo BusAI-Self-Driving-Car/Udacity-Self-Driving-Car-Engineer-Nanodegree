@@ -9,54 +9,59 @@ from keras.backend.tensorflow_backend import set_session
 
 def configure_tensorflow_session():
     config = tf.ConfigProto()
-    config.gpu_options.per_process_gpu_memory_fraction = 0.7   # 0.3
+    config.gpu_options.per_process_gpu_memory_fraction = 0.3   # 0.3
     config.gpu_options.allow_growth = True
     set_session(tf.Session(config=config))
     
-def get_model_nvidia_arch():
-    init = 'glorot_uniform'
+def get_model_nvidia_arch(dict_config_params):
+    
+    drop_prob = 0.2
+    
+    if dict_config_params['convert_rbg2gray']:
+        input_shape=(160,320,1)
+    else:
+        input_shape=(160,320,3)
     
     model = Sequential()
-    model.add(Cropping2D(cropping=((60,20), (0,0)), input_shape=(160,320,3)))
+    model.add(Cropping2D(cropping=((60,20), (0,0)), input_shape=input_shape))
     model.add(Lambda(lambda x: x/255. - .5))
     
-    model.add(Convolution2D(24, 5, 5, border_mode='valid', subsample=(2, 2), init=init))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.2))
-    #model.add(MaxPooling2D((2, 2)))
+    # model.add(Convolution2D(24, 5, 5, border_mode='valid', subsample=(2, 2), init=init))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2)))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
     
-    model.add(Convolution2D(36, 5, 5, border_mode='valid', subsample=(2, 2), init=init))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.2))
-    #model.add(MaxPooling2D((2, 2)))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2)))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
     
-    model.add(Convolution2D(48, 5, 5, border_mode='valid', subsample=(2, 2), init=init))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.2))
-    #model.add(MaxPooling2D((2, 2)))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2)))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
     
-    model.add(Convolution2D(64, 3, 3, border_mode='valid', init=init))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.2))
-    #model.add(MaxPooling2D((2, 2)))
+    model.add(Convolution2D(64, 3, 3))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
     
-    model.add(Convolution2D(64, 3, 3, border_mode='valid', init=init))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.2))
-    #model.add(MaxPooling2D((2, 2)))
+    model.add(Convolution2D(64, 3, 3))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
 
     model.add(Flatten())
     
+    drop_prob = 0.5
+    
     model.add(Dense(100))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
     
     model.add(Dense(50))
-    model.add(Activation('elu'))
-    model.add(Dropout(0.5))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
     
     model.add(Dense(10))
-    model.add(Activation('elu'))
+    model.add(Activation('relu'))
+    model.add(Dropout(drop_prob))
 
     model.add(Dense(1))
     return model

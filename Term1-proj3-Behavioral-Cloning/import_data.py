@@ -2,45 +2,39 @@ import numpy as np
 import cv2
 import csv
 
-lines = []
-with open('../../data/simulator/track1-run1-pretty-centered/driving_log.csv') as csvfile:
-    reader = csv.reader(csvfile)
-    for line in reader:
-        lines.append(line)
+def load_data(lines):
+    images = []
+    measurements = []
 
+    iter_lines = iter(lines)
+    next(iter_lines)
+    for line in iter_lines:
+        img_filename = line[0]	# center-camera
+        img_filename = img_filename.split('/')[-1]
 
-images = []
-measurements = []
+        #source_path = '../../data/simulator/sim-drive-data-udacity/IMG'
+        source_path = '../../data/simulator/track1-run1-pretty-centered/IMG/'
+        source_path += img_filename
+        image = cv2.cvtColor(cv2.imread(source_path), cv2.COLOR_BGR2RGB) #cv2.imread(source_path)
 
-iter_lines = iter(lines)
-next(iter_lines)
-for line in iter_lines:
-	img_filename = line[0]	# center-camera
-	img_filename = img_filename.split('/')[-1]
+        images.append(image)
 
-	#source_path = '../../data/simulator/sim-drive-data-udacity/IMG'
-	source_path = '../../data/simulator/track1-run1-pretty-centered/IMG/'
-	source_path += img_filename
-	image = cv2.imread(source_path)
-	images.append(image)
-	measurement = float(line[3])
-	measurements.append(measurement)
+        # Augmenting with vertically flipped image to balance the dataset skew towards leftward
+        # steering angles. With the original training data, the car keeps going in anticlockwise
+        # circles! 
+        flipped_image=image.copy()
+        flipped_image=cv2.flip(image,1)
+        images.append(flipped_image)
 
-X_train = np.array(images)
-y_train = np.array(measurements)
+        measurement = float(line[3])
+        measurements.append(measurement)
+        measurements.append(-measurement) # steering angle corr. to flipped image
 
+    X_train = np.array(images)
+    y_train = np.array(measurements)
+    return X_train, y_train
+    
+X_train, y_train = load_data(lines)
 print("image shape = {}".format(X_train[0].shape))
 print("X_train shape = {}".format(X_train.shape))
 print("y_train shape = {}".format(y_train.shape))
-
-from keras.models import Sequential
-from keras.layers import Flatten, Dense
-
-model = Sequential()
-model.add(Flatten(input_shape=(160,320,3)))
-model.add(Dense(1))
-
-model.compile(loss='mse', optimizer='adam')
-model.fit(X_train, y_train, validation_split=0.2, shuffle='True', nb_epoch=9)
-
-model.save('model.h5')
