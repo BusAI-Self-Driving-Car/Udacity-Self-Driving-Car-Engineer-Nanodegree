@@ -15,7 +15,7 @@ def configure_tensorflow_session():
     
 def get_model_nvidia_arch(dict_config_params):
     
-    drop_prob = 0.2
+    nn_conv_drop_prob = dict_config_params['nn_conv_drop_prob']  #0.2
     
     if dict_config_params['convert_rbg2gray']:
         input_shape=(160,320,1)
@@ -29,39 +29,39 @@ def get_model_nvidia_arch(dict_config_params):
     # model.add(Convolution2D(24, 5, 5, border_mode='valid', subsample=(2, 2), init=init))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2)))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_conv_drop_prob))
     
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2)))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_conv_drop_prob))
     
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2)))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_conv_drop_prob))
     
     model.add(Convolution2D(64, 3, 3))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_conv_drop_prob))
     
     model.add(Convolution2D(64, 3, 3))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_conv_drop_prob))
 
     model.add(Flatten())
     
-    drop_prob = 0.5
+    nn_dense_drop_prob = dict_config_params['nn_dense_drop_prob']  #0.5
     
     model.add(Dense(100))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_dense_drop_prob))
     
     model.add(Dense(50))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_dense_drop_prob))
     
     model.add(Dense(10))
     model.add(Activation('relu'))
-    model.add(Dropout(drop_prob))
+    model.add(Dropout(nn_dense_drop_prob))
 
     model.add(Dense(1))
     return model
