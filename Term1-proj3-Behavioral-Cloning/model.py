@@ -8,9 +8,9 @@ import tensorflow as tf
 from keras.backend.tensorflow_backend import set_session
 
 from config import dict_config_params
-from import_data import read_csv_driving_log, get_data, generator
+from load_data import read_csv_driving_log, get_data, generator
 from sklearn.model_selection import train_test_split
-
+from sklearn.utils import shuffle
 
 def configure_tensorflow_session():
     config = tf.ConfigProto()
@@ -165,6 +165,10 @@ if __name__ == '__main__':
     # X_train, y_train = shuffle(np.array(images), np.array(measurements)) 
     # history_object = model.fit(X_train, y_train, validation_split=0.2, shuffle='True', nb_epoch=12)
 
+    print("num_train_samples = {}".format(len(train_samples)))
+    print("num_validation_samples = {}".format(len(validation_samples)))
+    print()
+
     mult_factor = dict_config_params['mult_factor_samples_per_epoch']
     print("mult_factor = {}".format(mult_factor))
     print()
@@ -183,6 +187,9 @@ if __name__ == '__main__':
         plt.xlabel('epoch')
         plt.legend(['training set', 'validation set'], loc='upper right')
         plt.show()
+
+     # model.save('model.h5')
+	
 
 
 

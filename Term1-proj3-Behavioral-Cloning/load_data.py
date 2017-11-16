@@ -6,6 +6,7 @@ import cv2
 import sklearn
 from sklearn.utils import shuffle
 
+from config import dict_config_params
 
 def read_csv_driving_log():
     lines = []
