@@ -1,31 +1,5 @@
 #**Behavioral Cloning** 
 
-## Notes for later
-Steps I took until now:
-* Recorded a training dataset from the first track. Car more or less always in the center of the road. No corner cases. 
-* Developing (preprocessing + data augmentation) strategies in parallel to model-exploration.
-* First try was with the above recorded data and a single convolution layer, see get_model_single_layer() in model.py. Car just rotates anticlockwise all the time, didn't drive along the road at all. 
-* Augmented data by flipping images vertically and negating corresponding steering angles. Car is now able to at least drive a little while on the road.
-* Augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road.
-* Introduced a more complex model -- the LeNet architecture from the previous labs/project. 
-* Introduced an even more complex model -- the NVidia architecture from https://arxiv.org/pdf/1604.07316v1.pdf. 
-* Car drives off the road at the first sharp left curve, where the road side is not marked with distinctive boundary. 
-* Next steps
-** Preprocessing 
-*** colorspace transformation(?) 
-*** histogram equalization for steering angles
-*** tune steering angle correction
-** Data recording 
-*** corner cases
-*** data from track2
-✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ―
-
-## Writeup Template
-
-### You can use this file as a template for your writeup if you want to submit it as a markdown file, but feel free to use some other method and submit a pdf if you prefer.
-
----
-
 **Behavioral Cloning Project**
 
 The goals / steps of this project are the following:
@@ -46,8 +20,13 @@ The goals / steps of this project are the following:
 [image6]: ./examples/placeholder_small.png "Normal Image"
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
+[imageCenterLaneDriving]: ./examples/center_2017_11_07_17_27_36_336.jpg "Center-lane driving"
+[imageFlipped]: ./examples/flipped.png "Images flipped vertically"
+[imageSteeringAngleHistBiasedTo0]: ./examples/histogram_biased_to_0.png "Steering angle distribution biased towards 0.0 deg."
+[imageSteeringAngleHistEqualized]: ./examples/histogram_equalized.png "Steering angle distribution equalized"
+
 ## Rubric Points
-###Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
 
 ---
 ### Files Submitted & Code Quality
@@ -55,10 +34,13 @@ The goals / steps of this project are the following:
 #### 1. Submission includes all required files and can be used to run the simulator in autonomous mode
 
 My project includes the following files:
-* model.py containing the script to create and train the model
-* drive.py for driving the car in autonomous mode
-* model.h5 containing a trained convolution neural network 
-* writeup_report.md or writeup_report.pdf summarizing the results
+* [`config.py`](config.py) contains the parameter settings for all parts of the project
+* [`data_visualization.py`](data_visualization.py) contains functions for visualizing images from the dataset and distribution of steering angles
+* [`model.py`](model.py) contains NN model-definitions and code for training the model
+* [`drive.py`](drive.py) can be used for driving the car in autonomous mode
+* [`model.h5`](model.h5) contains trained CNN-based NVidia model for autonomous cars
+* [`video.mp4`](video.mp4) shows a successful drive by the above model on track1 of the Udacity self-driving car simulator
+* [`writeup_report.md`](writeup_report.md) contains a description of my approach to tackling this project
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
@@ -72,25 +54,27 @@ The model.py file contains the code for training and saving the convolution neur
 
 ### Model Architecture and Training Strategy
 
-#### 1. An appropriate model architecture has been employed
+#### 1. Model exploration
 
-My model consists of a convolution neural network with 3x3 filter sizes and depths between 32 and 128 (model.py lines 18-24) 
+I started with a simple model containing a single convolution layer (see get_model_single_layer() in model.py line 139), and gradually introduced more complexity. In the next step, I introduced just one extra image-cropping layer at the beginning (see get_model_single_layer_cropped() in model.py line 118). Next, I tried the LeNet architecture I had used in the previous project (see get_model_lenet() in mode.py line 84). 
 
-The model includes RELU layers to introduce nonlinearity (code line 20), and the data is normalized in the model using a Keras lambda layer (code line 18). 
+With every step, the model performed better than before. I finally converged onto the NVidia model (see get_model_nvidia_arch() in model.py line 24), with which I got good model fit as well as good performance in the autonomous mode on the simulator tracks. 
+
+This model consists of CNNs with 5x5 and 3x3 filter sizes and depths between 24 and 64. The model includes RELU layers to introduce nonlinearity (code line 46), and the data is normalized in the model using a Keras lambda layer (code line 42). 
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting (model.py lines 21). 
+The model contains dropout layers in order to reduce overfitting. 
 
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 10-16). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 160). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
 
 #### 3. Model parameter tuning
 
-The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 25).
+The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 190).
 
 #### 4. Appropriate training data
 
-Training data was chosen to keep the vehicle driving on the road. I used a combination of center lane driving, recovering from the left and right sides of the road ... 
+I developed data preprocessing and augmentation strategies in parallel to model-exploration. Training data was successively extended as required so that the NN model was able to keep the vehicle driving on the road.
 
 For details about how I created the training data, see the next section. 
 
@@ -98,49 +82,86 @@ For details about how I created the training data, see the next section.
 
 #### 1. Solution Design Approach
 
-The overall strategy for deriving a model architecture was to ...
+The overall strategy for deriving a model architecture was to successively introduce more complexity (convolutional layers) into the NN model, while extending/refining the training data until a satisfactory performance was achieved -- no over- or under-fitting, low mean-squared-error, and good performance on the simulator tracks in autonomous mode. 
 
-My first step was to use a convolution neural network model similar to the ... I thought this model might be appropriate because ...
+I started out with a simple CNN with a single convolutional layer, mainly out of curiosity to see how well it would perform. In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I had quite high mean-squared-errors (MSE), indicating that the model was significantly underfitting. Then I successively increased the number of convolutional layers until I had much lower MSE than before. But the autonomous-mode performance on track 2 in the simulator wasn't that good; the model seemed to overfit the training data. So I introduced dropout layers in the CNN, after which the model generalized quite well to track2.
 
-In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I found that my first model had a low mean squared error on the training set but a high mean squared error on the validation set. This implied that the model was overfitting. 
+I continuously evaluated track performance in autonomous mode in the simulator. With the NVidia CNN architecture, the car got quite far on track1, but wasn't able to navigate sharp turns so well. Also, if it went even a little off-track, it wasn't able to return back to the track. To improve the driving behavior in these cases, I augmented/extended the training data with cases specifically targeted at sharp turns and recovery from off-track. See more details below.
 
-To combat the overfitting, I modified the model so that ...
-
-Then I ... 
-
-The final step was to run the simulator to see how well the car was driving around track one. There were a few spots where the vehicle fell off the track... to improve the driving behavior in these cases, I ....
-
-At the end of the process, the vehicle is able to drive autonomously around the track without leaving the road.
+At the end of the process, the vehicle was able to drive autonomously around both tracks in the simulator without leaving the road.
 
 #### 2. Final Model Architecture
 
-The final model architecture (model.py lines 18-24) consisted of a convolution neural network with the following layers and layer sizes ...
+The final model architecture (see get_model_nvidia_arch() in model.py lines 24) consisted of a convolution neural network with the following layers and layer sizes. It was based on the NVidia architecture presented in the paper https://arxiv.org/pdf/1604.07316v1.pdf.
 
-Here is a visualization of the architecture (note: visualizing the architecture is optional according to the project rubric)
-
-![alt text][image1]
+| Layer         		|     Description	        					| I/P dims. | O/P dims | 
+|:---------------------:|:----------------------------:|:---------:|:--------:| 
+| Cropping & normalization   	| top, bottom = 60, 20 crop | 160x320x3 RGB image | 80x320x3 |
+| 2D Convolution 5x5, ReLU   	| 2x2 stride, valid padding | 80x320x3 | 38x158x24 |
+| Dropout    	| -- | -- | -- |
+| 2D Convolution 5x5, ReLU   	| 2x2 stride, valid padding | 38x158x24 | 17x77x36 |
+| Dropout    	| -- | -- | -- |
+| 2D Convolution 5x5, ReLU   	| 2x2 stride, valid padding | 17x77x36 | 7x37x48 |
+| Dropout    	| -- | -- | -- |
+| 2D Convolution 3x3, ReLU   	| 2x2 stride, valid padding | 7x37x48 | 5x35x64 |
+| Dropout    	| -- | -- | -- |
+| 2D Convolution 3x3, ReLU   	| 2x2 stride, valid padding | 5x35x64 | 3x33x64 |
+| Dropout    	| -- | -- | -- |
+| Flattening  	    	| Flatten prev. output into single array | 3x33x64 | 6336 |
+| Fully connected, ReLU		| Combines all outputs from previous layer together | 6336 | 100 |
+| Dropout    	| -- | -- | -- |
+| Fully connected, ReLU		| -- | 100 | 50 |
+| Dropout    	| -- | -- | -- |
+| Fully connected, ReLU		| -- | 50 | 10
+| Dropout    	| -- | -- | -- |
+| Fully connected, ReLU		| -- | 10 | 1 (steering angle prediction) 
 
 #### 3. Creation of the Training Set & Training Process
 
-To capture good driving behavior, I first recorded two laps on track one using center lane driving. Here is an example image of center lane driving:
+## Notes for later
+Steps I took until now:
 
-![alt text][image2]
 
-I then recorded the vehicle recovering from the left side and right sides of the road back to center so that the vehicle would learn to .... These images show what a recovery looks like starting from ... :
+* 
+* Introduced a more complex model -- the LeNet architecture from the previous labs/project. 
+* Introduced an even more complex model -- the NVidia architecture from https://arxiv.org/pdf/1604.07316v1.pdf. 
+* Car drives off the road at the first sharp left curve, where the road side is not marked with distinctive boundary. 
+* Next steps
+ * Preprocessing 
+  * colorspace transformation(?) 
+  * histogram equalization for steering angles
+  * tune steering angle correction
+ * Data recording 
+  * corner cases
+  * data from track2
+✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ―
+
+
+To capture good driving behavior, I recorded Recorded a training dataset from the first track. The car more or less always in the center of the road. There were no corner cases (car drifting off-road).  Here is an example image of center lane driving:
+
+![alt text][imageCenterLaneDriving]
+
+I developed data preprocessing and data augmentation strategies in parallel to model-exploration. My first try was with the above recorded data and a single convolution layer. With this model, the car just rotated anticlockwise all the time, didn't drive along the road at all. 
+
+The tracks are a circuit where by default. One drives counterclockwise leading to a strong bias towards left-ward (negative) steering angles in the data. To correct this imbalance, one could drive the same track in the other direction. However, I simply flipped the images from the counterclockwise dataset vertically and negated the corresponding steering angles to simulate driving in the other direction. Here are examples of images that have been flipped:
+
+![alt text][flipped.png]
+
+I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. This led to improved turning behavior on sharp turns. These images show what a typical recording of recovery looks like:
 
 ![alt text][image3]
 ![alt text][image4]
 ![alt text][image5]
 
-Then I repeated this process on track two in order to get more data points.
+At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. 
 
-To augment the data sat, I also flipped images and angles thinking that this would ... For example, here is an image that has then been flipped:
+![alt text][imageHistBiasedTo0]
 
-![alt text][image6]
-![alt text][image7]
+To equalize this histogram, I dropped data with steering angles==0. with a probability of 0.9. This made the sharpest turns on the simulator tracks possible for the model.
 
-Etc ....
+![alt text][imageSteeringAngleHistEqualized]
 
+--
 After the collection process, I had X number of data points. I then preprocessed this data by ...
 
 
