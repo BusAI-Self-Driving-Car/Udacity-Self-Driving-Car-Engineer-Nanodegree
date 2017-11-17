@@ -1,4 +1,4 @@
-#**Behavioral Cloning** 
+# **Behavioral Cloning** 
 
 **Behavioral Cloning Project**
 
@@ -118,25 +118,6 @@ The final model architecture (see get_model_nvidia_arch() in model.py lines 24) 
 
 #### 3. Creation of the Training Set & Training Process
 
-## Notes for later
-Steps I took until now:
-
-
-* 
-* Introduced a more complex model -- the LeNet architecture from the previous labs/project. 
-* Introduced an even more complex model -- the NVidia architecture from https://arxiv.org/pdf/1604.07316v1.pdf. 
-* Car drives off the road at the first sharp left curve, where the road side is not marked with distinctive boundary. 
-* Next steps
- * Preprocessing 
-  * colorspace transformation(?) 
-  * histogram equalization for steering angles
-  * tune steering angle correction
- * Data recording 
-  * corner cases
-  * data from track2
-✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ―
-
-
 To capture good driving behavior, I recorded Recorded a training dataset from the first track. The car more or less always in the center of the road. There were no corner cases (car drifting off-road).  Here is an example image of center lane driving:
 
 ![alt text][imageCenterLaneDriving]
@@ -145,7 +126,7 @@ I developed data preprocessing and data augmentation strategies in parallel to m
 
 The tracks are a circuit where by default. One drives counterclockwise leading to a strong bias towards left-ward (negative) steering angles in the data. To correct this imbalance, one could drive the same track in the other direction. However, I simply flipped the images from the counterclockwise dataset vertically and negated the corresponding steering angles to simulate driving in the other direction. Here are examples of images that have been flipped:
 
-![alt text][flipped.png]
+![alt text][imageFlipped]
 
 I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. This led to improved turning behavior on sharp turns. These images show what a typical recording of recovery looks like:
 
@@ -155,7 +136,7 @@ I also augmented data further with the L/R camera images to teach the car to ste
 
 At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. 
 
-![alt text][imageHistBiasedTo0]
+![alt text][imageSteeringAngleHistBiasedTo0]
 
 To equalize this histogram, I dropped data with steering angles==0. with a probability of 0.9. This made the sharpest turns on the simulator tracks possible for the model.
 
@@ -168,3 +149,12 @@ After the collection process, I had X number of data points. I then preprocessed
 I finally randomly shuffled the data set and put Y% of the data into a validation set. 
 
 I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+
+
+✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― 
+#### For the future
+
+* Next steps
+ * Preprocessing 
+  * colorspace transformation(?) 
+  * tune steering angle correction
