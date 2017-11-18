@@ -29,7 +29,8 @@ The goals / steps of this project are the following:
 [imageSteeringAngleHistEqualized]: ./examples/histogram_equalized.png "Steering angle distribution equalized"
 
 ## Rubric Points
-### Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
+
+Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  
 
 ---
 ### Files Submitted & Code Quality
@@ -59,9 +60,9 @@ The model.py file contains the code for training and saving the convolution neur
 
 #### 1. Model exploration
 
-I started with a simple model containing a single convolution layer (see get_model_single_layer() in model.py line 139), and gradually introduced more complexity. In the next step, I introduced just one extra image-cropping layer at the beginning (see get_model_single_layer_cropped() in model.py line 118). Next, I tried the LeNet architecture I had used in the previous project (see get_model_lenet() in mode.py line 84). 
+I started with a simple model containing a single convolution layer (see `get_model_single_layer()` in model.py line 139), and gradually introduced more complexity. In the next step, I introduced just one extra image-cropping layer at the beginning (see `get_model_single_layer_cropped()` in model.py line 118). Next, I tried the LeNet architecture I had used in the previous project (`see get_model_lenet()` in mode.py line 84). 
 
-With every step, the model performed better than before. I finally converged onto the NVidia model (see get_model_nvidia_arch() in model.py line 24), with which I got good model fit as well as good performance in the autonomous mode on the simulator tracks. 
+With every step, the model performed better than before. I finally converged onto the NVidia model (see `get_model_nvidia_arch()` in model.py line 24), with which I got good model fit as well as good performance in the autonomous mode on the simulator tracks. 
 
 This model consists of CNNs with 5x5 and 3x3 filter sizes and depths between 24 and 64. The model includes RELU layers to introduce nonlinearity (code line 46), and the data is normalized in the model using a Keras lambda layer (code line 42). 
 
@@ -95,7 +96,7 @@ At the end of the process, the vehicle was able to drive autonomously around bot
 
 #### 2. Final Model Architecture
 
-The final model architecture (see get_model_nvidia_arch() in model.py lines 24) consisted of a convolution neural network with the following layers and layer sizes. It was based on the NVidia architecture presented in the paper https://arxiv.org/pdf/1604.07316v1.pdf.
+The final model architecture (see `get_model_nvidia_arch()` in model.py lines 24) consisted of a convolution neural network with the following layers and layer sizes. It was based on the NVidia architecture presented in the paper https://arxiv.org/pdf/1604.07316v1.pdf.
 
 | Layer         		|     Description	        					| I/P dims. | O/P dims | 
 |:---------------------:|:----------------------------:|:---------:|:--------:| 
@@ -149,7 +150,7 @@ The data preprocessing I employed was quite simple, and consists of two steps:
 * Cropping the images from the top and from the bottom to focus on the road surface. This crops off the car dashboard at the bottom of the image and some scene imagery irrelevant for the NN model (trees, far away hills, etc.)
 * Normalizing the data to the range [-0.5, 0.5]
 
-The preprocessing is part of the NN model itself (see model.py get_model_nvidia_arch() lines 41--42). Making it a part of the model itself ensures that we have the same preprocessing used for the training/validation also available while driving in autonomous mode using the model. 
+The preprocessing is part of the NN model itself (see model.py `get_model_nvidia_arch()` lines 41--42). Making it a part of the model itself ensures that we have the same preprocessing used for the training/validation also available while driving in autonomous mode using the model. 
 
 The training data was used for training the model and the validation set was used to determine if the model was over- or under-fitting. I found the best number of epochs to be 12, as the MSE loss for training and validation monotonically decreased until epoch no. 12. The loss was comparable for training and validation at the end of 12 epochs, but diverged after that. I used an adam optimizer, so manually training the learning rate was not necessary.
 
