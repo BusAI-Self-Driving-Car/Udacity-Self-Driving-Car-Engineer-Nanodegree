@@ -147,10 +147,9 @@ The preprocessing is part of the NN model itself (see model.py `get_model_nvidia
 
 I found the best number of training epochs to be 12, as the MSE loss for training and validation monotonically decreased until epoch no. 12. The loss was comparable for training and validation at the end of 12 epochs, but diverged after that. I used an adam optimizer, so manually training the learning rate was not necessary.
 
+-- Original Udacity text below --
 
 ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― 
-
-# Original Udacity text below
 
 # Behaviorial Cloning Project
 
