@@ -21,7 +21,7 @@ The goals / steps of this project are the following:
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
 [imageCenterLaneDriving]: ./examples/center_2017_11_07_17_27_36_336.jpg "Center-lane driving"
-[imageFlipped]: ./examples/center_2017_11_07_17_27_36_336-flipped.png "Image flipped vertically"
+[imageFlipped]: ./examples/center_2017_11_07_17_27_36_336-flipped.jpg "Image flipped vertically"
 [imageSideToCenter1]: ./examples/side_to_center_2017_11_13_10_49_37_318.jpg "Roadside-to-center training -- 1"
 [imageSideToCenter2]: ./examples/side_to_center_2017_11_13_10_49_37_590.jpg "Roadside-to-center training -- 2"
 [imageSideToCenter3]: ./examples/side_to_center_2017_11_13_10_49_37_931.jpg "Roadside-to-center training -- 3"
