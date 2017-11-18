@@ -56,7 +56,19 @@ python drive.py model.h5
 
 The model.py file contains the code for training and saving the convolution neural network. The file shows the pipeline I used for training and validating the model, and it contains comments to explain how the code works.
 
-### Model Architecture and Training Strategy
+
+### Solution Design Approach
+
+The overall strategy for deriving a model architecture was to successively introduce more complexity (convolutional layers) into the NN model, while extending/refining the training data until a satisfactory performance was achieved -- no over- or under-fitting, low mean-squared-error, and good performance on the simulator tracks in autonomous mode. 
+
+I started out with a simple CNN with a single convolutional layer, mainly out of curiosity to see how well it would perform. In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I had quite high mean-squared-errors (MSE), indicating that the model was significantly underfitting. Then I successively increased the number of convolutional layers until I had much lower MSE than before. But the autonomous-mode performance on track 2 in the simulator wasn't that good; the model seemed to overfit the training data. So I introduced dropout layers in the CNN, after which the model generalized quite well to track2.
+
+I continuously evaluated track performance in autonomous mode in the simulator, by running the model through the simulator and ensuring that the vehicle could stay on the track. With the NVidia CNN architecture, the car got quite far on track1, but wasn't able to navigate sharp turns so well. Also, if it went even a little off-track, it wasn't able to return back to the track. To improve the driving behavior in these cases, I augmented/extended the training data with cases specifically targeted at sharp turns and recovery from off-track. See more details below.
+
+At the end of the process, the vehicle was able to drive autonomously around both tracks in the simulator without leaving the road.
+
+
+### Model Architecture
 
 #### 1. Model exploration
 
@@ -68,33 +80,13 @@ This model consists of CNNs with 5x5 and 3x3 filter sizes and depths between 24 
 
 #### 2. Attempts to reduce overfitting in the model
 
-The model contains dropout layers in order to reduce overfitting. 
-
-The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 160). The model was tested by running it through the simulator and ensuring that the vehicle could stay on the track.
+The model contains dropout layers in order to reduce overfitting. The model was trained and validated on different data sets to ensure that the model was not overfitting (code line 160).
 
 #### 3. Model parameter tuning
 
 The model used an adam optimizer, so the learning rate was not tuned manually (model.py line 190).
 
-#### 4. Appropriate training data
-
-I developed data preprocessing and augmentation strategies in parallel to model-exploration. Training data was successively extended as required so that the NN model was able to keep the vehicle driving on the road.
-
-For details about how I created the training data, see the next section. 
-
-### Model Architecture and Training Strategy
-
-#### 1. Solution Design Approach
-
-The overall strategy for deriving a model architecture was to successively introduce more complexity (convolutional layers) into the NN model, while extending/refining the training data until a satisfactory performance was achieved -- no over- or under-fitting, low mean-squared-error, and good performance on the simulator tracks in autonomous mode. 
-
-I started out with a simple CNN with a single convolutional layer, mainly out of curiosity to see how well it would perform. In order to gauge how well the model was working, I split my image and steering angle data into a training and validation set. I had quite high mean-squared-errors (MSE), indicating that the model was significantly underfitting. Then I successively increased the number of convolutional layers until I had much lower MSE than before. But the autonomous-mode performance on track 2 in the simulator wasn't that good; the model seemed to overfit the training data. So I introduced dropout layers in the CNN, after which the model generalized quite well to track2.
-
-I continuously evaluated track performance in autonomous mode in the simulator. With the NVidia CNN architecture, the car got quite far on track1, but wasn't able to navigate sharp turns so well. Also, if it went even a little off-track, it wasn't able to return back to the track. To improve the driving behavior in these cases, I augmented/extended the training data with cases specifically targeted at sharp turns and recovery from off-track. See more details below.
-
-At the end of the process, the vehicle was able to drive autonomously around both tracks in the simulator without leaving the road.
-
-#### 2. Final Model Architecture
+#### 4. Final Model Architecture
 
 The final model architecture (see `get_model_nvidia_arch()` in model.py lines 24) consisted of a convolution neural network with the following layers and layer sizes. It was based on the NVidia architecture presented in the paper https://arxiv.org/pdf/1604.07316v1.pdf.
 
@@ -120,7 +112,8 @@ The final model architecture (see `get_model_nvidia_arch()` in model.py lines 24
 | Dropout    	| -- | -- | -- |
 | Fully connected, ReLU		| -- | 10 | 1 (steering angle prediction) 
 
-#### 3. Creation of the Training Set & Training Process
+
+###Creation of the Training Set & Training Process
 
 To capture good driving behavior, I recorded Recorded a training dataset from the first track. The car more or less always in the center of the road. There were no corner cases (car drifting off-road).  Here is an example image of center lane driving:
 
@@ -132,7 +125,7 @@ The tracks are a circuit where by default. One drives counterclockwise leading t
 
 ![alt text][imageFlipped]
 
-I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. This led to improved turning behavior on sharp turns. These images show what a typical recording of recovery looks like:
+I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. These images show what a typical recording of recovery looks like:
 
 ![alt text][imageSideToCenter1] ![alt text][imageSideToCenter2] ![alt text][imageSideToCenter3]
 
@@ -140,7 +133,7 @@ At very sharp turns however, the car still didn't steer as sharply as I would ha
 
 ![alt text][imageSteeringAngleHistBiasedTo0]
 
-To equalize this histogram, I dropped data with steering angles==0. with a probability of 0.9. This made the sharpest turns on the simulator tracks possible for the model.
+To equalize this histogram, I dropped data with steering angles 0.0 with a probability of 0.9. This made the sharpest turns on the simulator tracks possible for the model.
 
 ![alt text][imageSteeringAngleHistEqualized]
 
@@ -152,7 +145,7 @@ The data preprocessing I employed was quite simple, and consists of two steps:
 
 The preprocessing is part of the NN model itself (see model.py `get_model_nvidia_arch()` lines 41--42). Making it a part of the model itself ensures that we have the same preprocessing used for the training/validation also available while driving in autonomous mode using the model. 
 
-The training data was used for training the model and the validation set was used to determine if the model was over- or under-fitting. I found the best number of epochs to be 12, as the MSE loss for training and validation monotonically decreased until epoch no. 12. The loss was comparable for training and validation at the end of 12 epochs, but diverged after that. I used an adam optimizer, so manually training the learning rate was not necessary.
+I found the best number of epochs to be 12, as the MSE loss for training and validation monotonically decreased until epoch no. 12. The loss was comparable for training and validation at the end of 12 epochs, but diverged after that. I used an adam optimizer, so manually training the learning rate was not necessary.
 
 
 ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― 
