@@ -119,7 +119,7 @@ The tracks are a circuit where by default. One drives counterclockwise leading t
 
 I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. These images show what a typical recording of recovery looks like:
 
-![alt text][imageSideToCenter1 =100x20] ![alt text][imageSideToCenter2 =100x20] ![alt text][imageSideToCenter3 =100x20]
+![alt text][imageSideToCenter1] ![alt text][imageSideToCenter2] ![alt text][imageSideToCenter3]
 
 At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. 
 
