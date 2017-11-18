@@ -22,6 +22,7 @@ The goals / steps of this project are the following:
 
 [imageCenterLaneDriving]: ./examples/center_2017_11_07_17_27_36_336.jpg "Center-lane driving"
 [imageFlipped]: ./examples/center_2017_11_07_17_27_36_336-flipped.jpg "Image flipped vertically"
+[imageCropped]: ./examples/center_2017_11_07_17_27_36_336-cropped.jpg "Cropped image"
 [imageSideToCenter1]: ./examples/side_to_center_2017_11_13_10_49_37_318.jpg "Roadside-to-center training -- 1"
 [imageSideToCenter2]: ./examples/side_to_center_2017_11_13_10_49_37_590.jpg "Roadside-to-center training -- 2"
 [imageSideToCenter3]: ./examples/side_to_center_2017_11_13_10_49_37_931.jpg "Roadside-to-center training -- 3"
@@ -123,13 +124,9 @@ I also augmented data further with the L/R camera images to teach the car to ste
 
 ![alt text][imageSideToCenter1] ![alt text][imageSideToCenter3]
 
-At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. 
+At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. To equalize this histogram, I dropped data with steering angles 0.0 with a probability of 0.9. This made the sharpest turns on the simulator tracks possible for the model.
 
-![alt text][imageSteeringAngleHistBiasedTo0]
-
-To equalize this histogram, I dropped data with steering angles 0.0 with a probability of 0.9. This made the sharpest turns on the simulator tracks possible for the model.
-
-![alt text][imageSteeringAngleHistEqualized]
+![alt text][imageSteeringAngleHistBiasedTo0] ![alt text][imageSteeringAngleHistEqualized]
 
 The data was randomly shuffled before splitting it into training data (80 %) and validation data (20%). In total, I had (1564 * 2 flipped-images * 3 cameras) = 9384 training data points and (392 * 2 flipped-images * 3 cameras) = 2352 validation data points. 
 
@@ -138,6 +135,8 @@ The data was randomly shuffled before splitting it into training data (80 %) and
 The data preprocessing I employed was quite simple, and consists of two steps:
 * Cropping the images from the top and from the bottom to focus on the road surface. This crops off the car dashboard at the bottom of the image and some scene imagery irrelevant for the NN model (trees, far away hills, etc.)
 * Normalizing the data to the range [-0.5, 0.5]
+
+![alt text][imageCenterLaneDriving] ![alt text][imageCropped]
 
 The preprocessing is part of the NN model itself (see model.py `get_model_nvidia_arch()` lines 41--42). Making it a part of the model itself ensures that we have the same preprocessing used for the training/validation also available while driving in autonomous mode using the model. 
 
