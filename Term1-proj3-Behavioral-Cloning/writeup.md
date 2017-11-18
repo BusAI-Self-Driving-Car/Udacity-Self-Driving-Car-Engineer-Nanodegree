@@ -138,6 +138,7 @@ The data preprocessing I employed was quite simple, and consists of two steps:
 * Normalizing the data to the range [-0.5, 0.5]
 
 Left: original image, Right: cropped image focusing on the road.
+
 ![alt text][imageCenterLaneDriving] ![alt text][imageCropped]
 
 The preprocessing is part of the NN model itself (see model.py `get_model_nvidia_arch()` lines 41--42). Making it a part of the model itself ensures that we have the same preprocessing used for the training/validation also available while driving in autonomous mode using the model. 
@@ -145,12 +146,3 @@ The preprocessing is part of the NN model itself (see model.py `get_model_nvidia
 #### 3. Training
 
 I found the best number of training epochs to be 12, as the MSE loss for training and validation monotonically decreased until epoch no. 12. The loss was comparable for training and validation at the end of 12 epochs, but diverged after that. I used an adam optimizer, so manually training the learning rate was not necessary.
-
-
-✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― 
-#### For the future
-
-* Next steps
-  * Preprocessing 
-    * colorspace transformation (?) 
-    * tune steering angle correction
