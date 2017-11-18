@@ -21,7 +21,7 @@ The goals / steps of this project are the following:
 [image7]: ./examples/placeholder_small.png "Flipped Image"
 
 [imageCenterLaneDriving]: ./examples/center_2017_11_07_17_27_36_336.jpg "Center-lane driving"
-[imageFlipped]: ./examples/flipped.png "Images flipped vertically"
+[imageFlipped]: ./examples/center_2017_11_07_17_27_36_336-flipped.png "Image flipped vertically"
 [imageSideToCenter1]: ./examples/side_to_center_2017_11_13_10_49_37_318.jpg "Roadside-to-center training -- 1"
 [imageSideToCenter2]: ./examples/side_to_center_2017_11_13_10_49_37_590.jpg "Roadside-to-center training -- 2"
 [imageSideToCenter3]: ./examples/side_to_center_2017_11_13_10_49_37_931.jpg "Roadside-to-center training -- 3"
@@ -74,7 +74,7 @@ At the end of the process, the vehicle was able to drive autonomously around bot
 
 I started with a simple model containing a single convolution layer (see `get_model_single_layer()` in model.py line 139), and gradually introduced more complexity. In the next step, I introduced just one extra image-cropping layer at the beginning (see `get_model_single_layer_cropped()` in model.py line 118). Next, I tried the LeNet architecture I had used in the previous project (`see get_model_lenet()` in mode.py line 84). 
 
-With every step, the model performed better than before. I finally converged onto the NVidia model (https://arxiv.org/pdf/1604.07316v1.pdf and see `get_model_nvidia_arch()` in model.py line 24), with which I got good model fit as well as good performance in the autonomous mode on the simulator tracks. 
+With every step, the model performed better than before. I finally converged onto the NVidia model (paper: https://arxiv.org/pdf/1604.07316v1.pdf; see `get_model_nvidia_arch()` in model.py line 24), with which I got good model fit as well as good performance in the autonomous mode on the simulator tracks. 
 
 #### 2. Final Model Architecture
 
@@ -117,7 +117,7 @@ I developed data preprocessing and data augmentation strategies in parallel to m
 
 The tracks are circuits, where by default one drives anticlockwise leading to a strong bias towards left-ward (negative) steering angles in the data. To correct this imbalance, one could drive the same track in the other direction. However, I simply flipped the images from the anticlockwise dataset vertically and negated the corresponding steering angles to generate additional data. Here are examples of images that have been flipped:
 
-![alt text][imageFlipped]
+![alt text][imageCenterLaneDriving] ![alt text][imageFlipped]
 
 I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. These images show what a typical recording of such a recovery looks like:
 
@@ -133,7 +133,7 @@ To equalize this histogram, I dropped data with steering angles 0.0 with a proba
 
 The data was randomly shuffled before splitting it into training data (80 %) and validation data (20%). In total, I had (1564 * 2 flipped-images * 3 cameras) = 9384 training data points and (392 * 2 flipped-images * 3 cameras) = 2352 validation data points. 
 
-#### 1. Preprocessing
+#### 2. Preprocessing
 
 The data preprocessing I employed was quite simple, and consists of two steps:
 * Cropping the images from the top and from the bottom to focus on the road surface. This crops off the car dashboard at the bottom of the image and some scene imagery irrelevant for the NN model (trees, far away hills, etc.)
