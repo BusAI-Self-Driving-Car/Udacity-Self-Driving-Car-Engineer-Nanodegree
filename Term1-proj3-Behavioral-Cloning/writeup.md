@@ -22,6 +22,9 @@ The goals / steps of this project are the following:
 
 [imageCenterLaneDriving]: ./examples/center_2017_11_07_17_27_36_336.jpg "Center-lane driving"
 [imageFlipped]: ./examples/flipped.png "Images flipped vertically"
+[imageSideToCenter1]: ./examples/side_to_center_2017_11_13_10_49_37_318.jpg "Roadside-to-center training -- 1"
+[imageSideToCenter2]: ./examples/side_to_center_2017_11_13_10_49_37_590.jpg "Roadside-to-center training -- 2"
+[imageSideToCenter3]: ./examples/side_to_center_2017_11_13_10_49_37_931.jpg "Roadside-to-center training -- 3"
 [imageSteeringAngleHistBiasedTo0]: ./examples/histogram_biased_to_0.png "Steering angle distribution biased towards 0.0 deg."
 [imageSteeringAngleHistEqualized]: ./examples/histogram_equalized.png "Steering angle distribution equalized"
 
@@ -40,7 +43,7 @@ My project includes the following files:
 * [`drive.py`](drive.py) can be used for driving the car in autonomous mode
 * [`model.h5`](model.h5) contains trained CNN-based NVidia model for autonomous cars
 * [`video.mp4`](video.mp4) shows a successful drive by the above model on track1 of the Udacity self-driving car simulator
-* [`writeup_report.md`](writeup_report.md) contains a description of my approach to tackling this project
+* [`writeup.md`](writeup.md) contains a description of my approach to tackling this project
 
 #### 2. Submission includes functional code
 Using the Udacity provided simulator and my drive.py file, the car can be driven autonomously around the track by executing 
@@ -130,9 +133,7 @@ The tracks are a circuit where by default. One drives counterclockwise leading t
 
 I also augmented data further with the L/R camera images to teach the car to steer to the center if it moves towards the side of the road. The car was now able to at least drive a little while on the road, but still went off-road at sharp turns, and couldn't recover. I then added a new dataset consisting specifically of side-to-center recovery for both tracks. This led to improved turning behavior on sharp turns. These images show what a typical recording of recovery looks like:
 
-![alt text][image3]
-![alt text][image4]
-![alt text][image5]
+![alt text][imageSideToCenter1] ![alt text][imageSideToCenter2] ![alt text][imageSideToCenter3]
 
 At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. 
 
@@ -142,19 +143,22 @@ To equalize this histogram, I dropped data with steering angles==0. with a proba
 
 ![alt text][imageSteeringAngleHistEqualized]
 
---
-After the collection process, I had X number of data points. I then preprocessed this data by ...
+The data was randomly shuffled before splitting it into training data (80 %) and validation data (20%). In total, I had (1564 * 2 flipped-images * 3 cameras) = 9384 training data points and (392 * 2 flipped-images * 3 cameras) = 2352 validation data points. 
 
+The data preprocessing I employed was quite simple, and consists of two steps:
+* Cropping the images from the top and from the bottom to focus on the road surface. This crops off the car dashboard at the bottom of the image and some scene imagery irrelevant for the NN model (trees, far away hills, etc.)
+* Normalizing the data to the range [-0.5, 0.5]
 
-I finally randomly shuffled the data set and put Y% of the data into a validation set. 
+The preprocessing is part of the NN model itself (see model.py get_model_nvidia_arch() lines 41--42). Making it a part of the model itself ensures that we have the same preprocessing used for the training/validation also available while driving in autonomous mode using the model. 
 
-I used this training data for training the model. The validation set helped determine if the model was over or under fitting. The ideal number of epochs was Z as evidenced by ... I used an adam optimizer so that manually training the learning rate wasn't necessary.
+The training data was used for training the model and the validation set was used to determine if the model was over- or under-fitting. I found the best number of epochs to be 12, as the MSE loss for training and validation monotonically decreased until epoch no. 12. The loss was comparable for training and validation at the end of 12 epochs, but diverged after that. I used an adam optimizer, so manually training the learning rate was not necessary.
 
 
 ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― ✂ ― 
 #### For the future
 
 * Next steps
+
  * Preprocessing 
   * colorspace transformation(?) 
   * tune steering angle correction
