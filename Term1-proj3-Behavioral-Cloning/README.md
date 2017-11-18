@@ -125,7 +125,7 @@ I also augmented data further with the L/R camera images to teach the car to ste
 
 ![alt text][imageSideToCenter1] ![alt text][imageSideToCenter3]
 
-At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of data points where the steering angle was 0.0. To equalize this histogram, I dropped data with steering angles 0.0 with a probability of 0.9 (see `load_data.py` lines 20--28). This made the sharpest turns on the simulator tracks possible for the model.
+At very sharp turns however, the car still didn't steer as sharply as I would have liked it to, and in some cases went off track. One possible reason for this could be the large proportion of training data points where the steering angle was 0.0. To equalize this histogram and reduce bias towards angles 0.0, I dropped training data with steering angles 0.0 with a probability of 0.9 (see `load_data.py` lines 20--28). This selective training data led to a model that was able to navigate the sharpest turns on the simulator tracks.
 
 ![alt text][imageSteeringAngleHistBiasedTo0] ![alt text][imageSteeringAngleHistEqualized]
 
