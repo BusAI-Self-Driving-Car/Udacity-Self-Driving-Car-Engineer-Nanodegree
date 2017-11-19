@@ -93,19 +93,19 @@ def undistort_image(img, mtx, dist, plot_images=True):
 if __name__ == '__main__':
 
     mtx, dist = calibrate_camera(use_calib_cache=False)
-    print("mtx: {}".format(mtx))
+    print("camera matrix: {}".format(mtx))
     print()
-    print("dist: {}".format(dist))
+    print("distortion coefficients: {}".format(dist))
 
     # Calibrate camera
     print()
     mtx, dist = calibrate_camera(use_calib_cache=True)
-    print("mtx: {}".format(mtx))
+    print("camera matrix: {}".format(mtx))
     print()
-    print("dist: {}".format(dist))
+    print("distortion coefficients: {}".format(dist))
 
     # Undistort a calibration image
-    img_calib = cv2.cvtColor(cv2.imread('./camera_cal/calibration2.jpg'), cv2.COLOR_BGR2RGB)
+    img_calib = cv2.cvtColor(cv2.imread('./camera_cal/calibration1.jpg'), cv2.COLOR_BGR2RGB)
     img_undistorted = undistort_image(img_calib, mtx, dist, plot_images=True)
 
     cv2.imwrite('output_images/img_distorted_calib.jpg', img_calib)
