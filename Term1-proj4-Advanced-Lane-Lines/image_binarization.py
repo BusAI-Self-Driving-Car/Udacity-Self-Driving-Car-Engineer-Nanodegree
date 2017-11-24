@@ -97,6 +97,34 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
     return binary_output.astype(bool)
     
 
+def binarize_frame(image):
+    
+    # Gradient thresholding
+    ## Thresholding on x- or y-gradients
+    grad_x_binary = abs_sobel_thresh_x_or_y(image, orient='x', thresh_min=20, thresh_max=100)
+    grad_y_binary = abs_sobel_thresh_x_or_y(image, orient='y', thresh_min=20, thresh_max=100)
+
+    ## Thresholding on magnitude of gradient
+    mag_binary = mag_thresh(image, sobel_kernel=3, mag_thresh=(30, 100))
+
+    ## Thresholding on direction of gradient
+    dir_binary = dir_threshold(image, sobel_kernel=15, thresh=(0.7, 1.3))
+
+    ## Combine different gradient thresholding strategies
+    combined = np.zeros_like(mag_binary)
+    combined[((grad_x_binary==1) & (grad_y_binary==1)) | ((mag_binary==1) & (dir_binary==1))] = 1
+
+    ## Color thresholding
+    hls_binary = hls_select(image, thresh=(90, 255))
+
+    # Combine the threshold and gradient thresholding
+    combined_binary = np.zeros_like(grad_x_binary)
+    combined_binary[(grad_x_binary == 1) | (hls_binary == 1)] = 1    
+
+    return combined_binary
+
+
+    
 # In[3]:
 
 

@@ -85,21 +85,20 @@ def get_src_dst_vertices(img_size):
 
     return src, dst
 
-def warp_image_to_top_down_view(img, img_size, mtx, dist, perspective_M):
+def warp_image_to_top_down_view(img, img_size, perspective_M):
 
     # Use cv2.warpPerspective() to warp your image to a top-down view
     warped = cv2.warpPerspective(img, perspective_M, img_size, flags=cv2.INTER_LINEAR)
     
     return warped
 
-def get_perspective_transform(img, img_size, mtx, dist, src=None, dst=None):
-
+def get_perspective_transform(img_size):
+    
+    src, dst = get_src_dst_vertices(img_size)
+    
     # Use cv2.getPerspectiveTransform() to get M, the transform matrix
     M = cv2.getPerspectiveTransform(src, dst)
     M_inv = cv2.getPerspectiveTransform(dst, src)
 
-    # Use cv2.warpPerspective() to warp your image to a top-down view
-    warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
-
-    return warped, M, M_inv
+    return M, M_inv
 
