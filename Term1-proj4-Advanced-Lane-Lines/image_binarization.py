@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import pickle
 
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 
 ### Gradient thresholding ###
@@ -96,62 +96,6 @@ def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
     # 6) Return this mask as your binary_output image
     return binary_output.astype(bool)
     
-    
-# Read in an image
-image = cv2.cvtColor(cv2.imread('./test_images/straight_lines1.jpg'), cv2.COLOR_BGR2RGB)
-
-## Thresholding on x- or y-gradients
-grad_x_binary = abs_sobel_thresh_x_or_y(image, orient='x', thresh_min=20, thresh_max=100)
-grad_y_binary = abs_sobel_thresh_x_or_y(image, orient='y', thresh_min=20, thresh_max=100)
-
-# Plot the result
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-f.tight_layout()
-ax1.imshow(image)
-ax1.set_title('Original Image', fontsize=25)
-ax2.imshow(grad_x_binary, cmap='gray')
-ax2.set_title('Thresholded x-gradient', fontsize=25)
-plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-## Thresholding on magnitude of gradient
-mag_binary = mag_thresh(image, sobel_kernel=3, mag_thresh=(30, 100))
-
-# Plot the result
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-f.tight_layout()
-ax1.imshow(image)
-ax1.set_title('Original Image', fontsize=25)
-ax2.imshow(mag_binary, cmap='gray')
-ax2.set_title('Thresholded magnitude of gradient', fontsize=25)
-plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-
-## Thresholding on direction of gradient
-dir_binary = dir_threshold(image, sobel_kernel=15, thresh=(0.7, 1.3))
-
-# Plot the result
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-f.tight_layout()
-ax1.imshow(image)
-ax1.set_title('Original Image', fontsize=25)
-ax2.imshow(dir_binary, cmap='gray')
-ax2.set_title('Thresholded direction of gradient', fontsize=25)
-plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-
-## Combine different thresholding strategies
-combined = np.zeros_like(mag_binary)
-combined[((grad_x_binary==1) & (grad_y_binary==1)) | ((mag_binary==1) & (dir_binary==1))] = 1
-
-# Plot the result
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-f.tight_layout()
-ax1.imshow(image)
-ax1.set_title('Original Image', fontsize=25)
-ax2.imshow(combined, cmap='gray')
-ax2.set_title('Thresholded', fontsize=25)
-plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
 
 # In[3]:
 
@@ -172,41 +116,4 @@ def hls_select(img, thresh=(0, 255)):
     # 3) Return a binary image of threshold result
     #binary_output = np.copy(img) # placeholder line
     return binary_output
-
-
-# Read in an image
-image = cv2.cvtColor(cv2.imread('./test_images/straight_lines1.jpg'), cv2.COLOR_BGR2RGB)
-
-## Color thresholding
-hls_binary = hls_select(image, thresh=(90, 255))
-
-# Plot the result
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-f.tight_layout()
-ax1.imshow(image)
-ax1.set_title('Original Image', fontsize=50)
-ax2.imshow(hls_binary, cmap='gray')
-ax2.set_title('Thresholded S', fontsize=50)
-
-
-# In[5]:
-
-
-### Combined Color and Gradient thresholding ###
-
-# Stack each channel to view their individual contributions in green and blue respectively
-# This returns a stack of the two binary images, whose components you can see as different colors
-color_binary = np.dstack(( np.zeros_like(grad_x_binary), grad_x_binary, hls_binary)) * 255
-
-# Combine the two binary thresholds
-combined_binary = np.zeros_like(grad_x_binary)
-combined_binary[(grad_x_binary == 1) | (hls_binary == 1)] = 1
-
-# Plotting thresholded images
-f, (ax1, ax2) = plt.subplots(1, 2, figsize=(20,10))
-ax1.set_title('Stacked thresholds')
-ax1.imshow(color_binary)
-
-ax2.set_title('Combined S channel and gradient thresholds')
-ax2.imshow(combined_binary, cmap='gray')
 

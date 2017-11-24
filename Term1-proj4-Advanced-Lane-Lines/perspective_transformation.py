@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-get_ipython().run_line_magic('matplotlib', 'inline')
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 from camera_calibration import undistort_image
 
@@ -102,99 +102,4 @@ def get_perspective_transform(img, img_size, mtx, dist, src=None, dst=None):
     warped = cv2.warpPerspective(img, M, img_size, flags=cv2.INTER_LINEAR)
 
     return warped, M, M_inv
-
-if __name__ == '__main__':
-
-    # Read in the saved camera matrix and distortion coefficients
-    ret, mtx, dist, rvecs, tvecs = pickle.load( open( "./camera_cal/calibration_results.p", "rb" ) )
-
-    # Read in an image
-    calib_img = cv2.imread('./camera_cal/calibration3.jpg')
-    nx = 9 # the number of inside corners in x
-    ny = 6 # the number of inside corners in y
-
-    from_front, _ = corners_unwarp(calib_img, nx, ny, mtx, dist)
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(calib_img)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(from_front)
-    ax2.set_title('Undistorted and Warped Image', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-    
-   
-    # Read in the saved camera matrix and distortion coefficients
-    ret, mtx, dist, rvecs, tvecs = pickle.load( open( "./camera_cal/calibration_results.p", "rb" ) )
-    
-    src, dst = get_src_dst_vertices()
-    
-    # Read in an image
-    test_image = cv2.cvtColor(cv2.imread('./test_images/straight_lines1.jpg'), cv2.COLOR_BGR2RGB)
-    
-    img_undistorted = undistort_image(test_image, mtx, dist, plot_images=False)
-    top_down, perspective_M = get_perspective_transform(img_undistorted, img_size, mtx, dist, src, dst)
-
-    pts = np.array(src, np.int32)
-    pts = pts.reshape((-1,1,2))
-    cv2.polylines(test_image, [pts], True, (255, 0, 0), 5)
-
-    pts = np.array(dst, np.int32)
-    pts = pts.reshape((-1,1,2))
-    cv2.polylines(top_down, [pts], True, (255, 0, 0), 5)
-
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(test_image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(top_down)
-    ax2.set_title('Undistorted and Warped Image', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-
-    # In[20]:
-
-
-    ### Image with straight lane-lines ###
-    # test2.jpg
-    test_image = cv2.cvtColor(cv2.imread('./test_images/straight_lines2.jpg'), cv2.COLOR_BGR2RGB)
-    img_undistorted = undistort_image(test_image, mtx, dist, plot_images=False)
-    top_down = warp_image_to_top_down_view(img_undistorted, img_size, mtx, dist, perspective_M)
-
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(test_image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(top_down)
-    ax2.set_title('Undistorted and Warped Image', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-
-    ### Images with curved lane-lines ###
-    # test2.jpg
-    test_image = cv2.cvtColor(cv2.imread('./test_images/test2.jpg'), cv2.COLOR_BGR2RGB)
-    img_undistorted = undistort_image(test_image, mtx, dist, plot_images=False)
-    top_down = warp_image_to_top_down_view(img_undistorted, img_size, mtx, dist, perspective_M)
-
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(test_image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(top_down)
-    ax2.set_title('Undistorted and Warped Image', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-
-    # test3.jpg
-    test_image = cv2.cvtColor(cv2.imread('./test_images/test3.jpg'), cv2.COLOR_BGR2RGB)
-    img_undistorted = undistort_image(test_image, mtx, dist, plot_images=False)
-    top_down = warp_image_to_top_down_view(img_undistorted, img_size, mtx, dist, perspective_M)
-
-    f, (ax1, ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(test_image)
-    ax1.set_title('Original Image', fontsize=50)
-    ax2.imshow(top_down)
-    ax2.set_title('Undistorted and Warped Image', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
 
