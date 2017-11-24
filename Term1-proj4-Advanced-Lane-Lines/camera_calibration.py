@@ -3,7 +3,10 @@
 
 # ### TODO
 # 
-# * Cache calibration results, so that the program calling the calibration routines below do not recompute calibration every time. 
+# * ...
+
+# In[59]:
+
 
 import os.path, glob
 import numpy as np
@@ -12,7 +15,7 @@ import pickle
 
 import matplotlib.image as mpimg
 import matplotlib.pyplot as plt
-#get_ipython().run_line_magic('matplotlib', 'inline')
+get_ipython().run_line_magic('matplotlib', 'inline')
 
 
 def calibrate_camera(use_calib_cache=True, save_to_pickle_file=True):
@@ -75,6 +78,15 @@ def calibrate_camera(use_calib_cache=True, save_to_pickle_file=True):
     return mtx, dist
 
 
+mtx, dist = calibrate_camera(use_calib_cache=False)
+print("camera matrix: {}".format(mtx))
+print()
+print("distortion coefficients: {}".format(dist))
+
+
+# In[62]:
+
+
 def undistort_image(img, mtx, dist, plot_images=True):
     img_undistorted = cv2.undistort(img, mtx, dist, None, mtx)
     
@@ -89,35 +101,26 @@ def undistort_image(img, mtx, dist, plot_images=True):
     
     return img_undistorted
 
+# Calibrate camera
+mtx, dist = calibrate_camera(use_calib_cache=True)
+print("camera matrix: {}".format(mtx))
+print()
+print("distortion coefficients: {}".format(dist))
 
-if __name__ == '__main__':
+# Undistort a calibration image
+img_calib = cv2.cvtColor(cv2.imread('./camera_cal/calibration1.jpg'), cv2.COLOR_BGR2RGB)
+img_undistorted = undistort_image(img_calib, mtx, dist, plot_images=True)
 
-    mtx, dist = calibrate_camera(use_calib_cache=False)
-    print("camera matrix: {}".format(mtx))
-    print()
-    print("distortion coefficients: {}".format(dist))
+cv2.imwrite('output_images/img_distorted_calib.jpg', img_calib)
+cv2.imwrite('output_images/img_undistorted_calib.jpg', img_undistorted)
 
-    # Calibrate camera
-    print()
-    mtx, dist = calibrate_camera(use_calib_cache=True)
-    print("camera matrix: {}".format(mtx))
-    print()
-    print("distortion coefficients: {}".format(dist))
+# Undistort a test image
+img_test = cv2.cvtColor(cv2.imread('./test_images/test2.jpg'), cv2.COLOR_BGR2RGB)
+img_undistorted = undistort_image(img_test, mtx, dist, plot_images=True)
 
-    # Undistort a calibration image
-    img_calib = cv2.cvtColor(cv2.imread('./camera_cal/calibration1.jpg'), cv2.COLOR_BGR2RGB)
-    img_undistorted = undistort_image(img_calib, mtx, dist, plot_images=True)
-
-    cv2.imwrite('output_images/img_distorted_calib.jpg', img_calib)
-    cv2.imwrite('output_images/img_undistorted_calib.jpg', img_undistorted)
-
-    # Undistort a test image
-    img_test = cv2.cvtColor(cv2.imread('./test_images/test2.jpg'), cv2.COLOR_BGR2RGB)
-    img_undistorted = undistort_image(img_test, mtx, dist, plot_images=True)
-
-    cv2.imwrite('output_images/img_distorted_test.jpg', img_test)
-    cv2.imwrite('output_images/img_undistorted_test.jpg', img_undistorted)
+cv2.imwrite('output_images/img_distorted_test.jpg', img_test)
+cv2.imwrite('output_images/img_undistorted_test.jpg', img_undistorted)
 
 
-    # plt.close()
+# plt.close()
 
