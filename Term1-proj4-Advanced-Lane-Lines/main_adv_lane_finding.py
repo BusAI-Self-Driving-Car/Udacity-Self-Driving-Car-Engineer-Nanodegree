@@ -189,7 +189,7 @@ def track_lane_lines(binary_warped, left_fit, right_fit):
 def detect_lane_lines(binary_warped, plot_image=False):
     
     #print("binary_warped.shape = {}".format(binary_warped.shape))
-    print()
+    #print()
     
     out_img = (np.dstack((binary_warped, binary_warped, binary_warped))*255).astype(np.uint8)
         
@@ -270,13 +270,8 @@ def detect_lane_lines(binary_warped, plot_image=False):
         if len(good_right_inds) > minpix:        
             rightx_current = np.int(np.mean(nonzerox[good_right_inds]))
 
-    print()
-    # Concatenate the arrays of indices
-    print("len(left_lane_inds) = {}".format(len(left_lane_inds)))
-    print("len(left_lane_inds[0]) = {}".format(len(left_lane_inds[0])))
+    # Concatenate the arrays of indices    
     left_lane_inds = np.concatenate(left_lane_inds)
-    print("concat. len(left_lane_inds) = {}".format(len(left_lane_inds)))
-    print()
     right_lane_inds = np.concatenate(right_lane_inds)
 
     leftx, lefty, rightx, righty = get_lane_pixel_positions(nonzero, left_lane_inds, right_lane_inds)
@@ -391,13 +386,12 @@ def process_video_frame(frame):
     ploty = None
     if num_frames_processed==0:        
         out_img, left_fit, right_fit, left_fitx, right_fitx, ploty = detect_lane_lines(top_down_binary, 
-                                                                                       plot_image=False) 
-        print("left_fit: {}".format(left_fit))
+                                                                                       plot_image=False)         
     else:        
         out_img, left_fitx, right_fitx, ploty = track_lane_lines(top_down_binary, left_fit, right_fit)
     
     num_frames_processed += 1
-    #print("num_frames_processed: {}".format(num_frames_processed))
+    # print("num_frames_processed: {}".format(num_frames_processed))
         
     img_lines_on_road = project_lane_lines_to_road(frame_undistorted, out_img,
                                                    left_fitx, right_fitx, ploty, perspective_M_inv)

@@ -23,6 +23,7 @@ def calibrate_camera(use_calib_cache=True, save_to_pickle_file=True):
     filename_calib_results = "./camera_cal/calibration_results.p"
     if use_calib_cache is True:
         if os.path.exists(filename_calib_results):
+            print()
             print("Using already available cached calibration results.")
             print()
             ret, mtx, dist, rvecs, tvecs = pickle.load( open(filename_calib_results, "rb" ) )
