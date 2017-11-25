@@ -59,7 +59,7 @@ Notice how the deer-warning road-sign appears flatter in the undistorted image:
 
  I used a combination of gradient (x-direction) and HLS colorspace thresholding on the S-channel. See `binarize_frame()` in `image_binarization.py` and the illustrations in the following images. 
 
- I used the sobel operator to calculate the x- or y-gradients (opencv function `cv2.Sobel()`). The magnitude and direction gradients were derived from the x- and y-gradients. After experimenting somewhat with these gradients and their combinations, I concluded that just the x-gradient was sufficient to achieve a good performance with the project-video. 
+ I used the sobel operator to calculate the x- or y-gradients (opencv function `cv2.Sobel()`). The magnitude and direction gradients were derived from the x- and y-gradients. After experimenting somewhat with these gradients and their combinations, I concluded that just the x-gradient was sufficient to achieve a good performance with the project-video. Since the lane-lines are more or less vertical in the camera images, the x-gradient captures them most clearly. 
 
 With hints from the project guidelines and after experimenting with the HLS colorspace, I found that the S (saturation)-channel captured the lane-lines quite well. It was independent of lane-line color (yellow/white) and pretty robust against contrast changes on the road-surface, e.g. due to shadows.
 
@@ -76,9 +76,9 @@ My final image binarization routine uses a combination of x-gradient and S-chann
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes the functions `get_src_dst_vertices()`, `get_perspective_transform()`, and `warp_image_to_top_down_view()` functions in file `perspective_transformation.py`. 
+The code for my perspective transform includes the functions `get_src_dst_vertices()`, `get_perspective_transform()`, and `warp_image_to_top_down_view()` in file `perspective_transformation.py`. 
 
-The source and destination points required for determining the perspective transformation are obtained from the `get_src_dst_vertices()`, in which they are hardcoded to:
+The source and destination points required for determining the perspective transformation are obtained from the `get_src_dst_vertices()`, where after many trials, they were hardcoded to:
 
 ```python
 src = np.float32([[567, 470],[717, 470],[1110, 720],[200, 720]])
@@ -166,4 +166,16 @@ Here's a [link to my video result](./out_project_video.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+As can be seen from the images below, the image-binarization captures a lot of confounding details, which turns out badly for the line-fitting. Perhaps a Convolutional Neural Network would be more robust here, picking up its own features relevant to the problem and ignoring non-essential details. 
+
+In this image, the shadows on the road show up heavily in the binarized image:
+[imageProblem1]: ./output_images/problem1.png "Problem1"
+![alt text][imageProblem1]
+
+Also, my frame-to-frame line-tracking seems to fail for sharp curves in the challenge videos. This is because the search window predicted from previous frames excludes sharply curving lane-lines deeper in the image. A solution to this could be to use the radius of curvature to correct the predicted search window. For a sharp curve, this could help us to "bend" the search window, so that the curved lane-lines are captured deeper into the image. 
+
+From the harder challenge video:
+[imageProblem2]: ./output_images/imageProblem2.png "Problem2"
+![alt text][imageProblem2]
+
+We can visualize the output at various stages of the pipeline with test images. However, working with a video where we track lines across frames is a bit different, and cannot be visualized easily. In the future, I would like to implement a Picture-in-Picture inset to the output video to visualize, e.g. how well the gradient and color thresholding are performing. This would make it easier to tune the image-binarization algorithm, while looking at the output video simutaneously. 
