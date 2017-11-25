@@ -117,9 +117,9 @@ right_fit: [ -4.70246069e-06  -2.74283879e-02   9.98546569e+02]
 [imageSecondOrderPolyfitDetection]: ./output_images/second-order-polyfit-detection.png "Second order polynomial fit on detected lane-lines"
 ![alt text][imageSecondOrderPolyfitDetection]
 
-Once the lane-lines are detected at the beginning, I track them over the subsequent frames by specifying a search window around the polynomial fit determined previously. This saves us an exhaustive search from bottom-to-top of the image as required during the line detection described above. 
+Once the lane-lines are detected at the beginning, I track them over the subsequent frames by specifying a search window around the polynomial fit determined previously (see `track_lane_lines()` in `lane_lines.py`). This saves us an exhaustive search from bottom-to-top of the image as required during the line detection described above. 
 
-In fact for tracking lines across frames, I don't use a single previous fit, rather an average over some previous fits to place the search window. Also, for plotting the lane-line on the output image, I use the average fit which includes the current fit. This low-pass filtering is done in the hope that the wobbliness or flutteriness of lines is reduced. 
+In fact for tracking lines across frames, I don't use a single previous fit, rather an average over some previous fits to place the search window. Also, for plotting the lane-line on the output image, I use the average fit which includes the current fit. This low-pass filtering is done in the hope that the wobbliness or flutteriness of lines is reduced. Here is an example image of tracked lane-lines:
 
 [imageSecondOrderPolyfitTracking]: ./output_images/second-order-polyfit-tracking.png "Second order polynomial fit on tracked lane-lines"
 ![alt text][imageSecondOrderPolyfitTracking]
