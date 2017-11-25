@@ -13,18 +13,6 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-[//]: # (Image References)
-
-[imageUndistortCheckerboard]: ./output_images/undistort_checkerboard.png "Undistorted checkerboard"
-[imageUndistortRoadImage]: ./output_images/undistort_road_img.png "Undistorted road image"
-
-[image2]: ./test_images/test1.jpg "Road Transformed"
-[image3]: ./examples/binary_combo_example.jpg "Binary Example"
-[image4]: ./examples/warped_straight_lines.jpg "Warp Example"
-[image5]: ./examples/color_fit_lines.jpg "Fit Visual"
-[image6]: ./examples/example_output.jpg "Output"
-[video1]: ./project_video.mp4 "Video"
-
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
 Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
@@ -45,13 +33,13 @@ The code for this step is contained in the file `camera_calibration.py`.
 
 Here we determine the camera matrix, which captures the transformation between real-world 3D coordinates of objects and their corresponding 2D image coordinates. For this purpose we use a checkerboard as our object, since it has a simple pattern with good contrast and known dimensions. We use the internal corners of the checkerboard to determine the 3D world and 2D image coordinates. 
 
-Since the checkerboard is flat, we can set its z-coordinates to 0, and for every checkerboard image, we can assume the same real-world checkerboard object with the same (x,y,z) coordinates. Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time all checkerboard corners are detected in a test image.  
+Since the checkerboard is flat, we can set its z-coordinates to 0, and for every checkerboard image, we can assume the same real-world checkerboard object with the same (x, y, z) coordinates. Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time all checkerboard corners are detected in a test image.  
 
 `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful checkerboard detection.  
 
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained the following result.
+I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to a test image using the `cv2.undistort()` function and obtained the following result.
 
-For a checkerboard image:
+[imageUndistortCheckerboard]: ./output_images/undistort_checkerboard.png "Undistorted checkerboard"
 ![alt text][imageUndistortCheckerboard]
 
 ### Pipeline (single images)
@@ -61,13 +49,22 @@ For a checkerboard image:
 Once the camera calibration is available from the previous step, it can be used to undistort real-world test images using the `cv2.undistort()` function:
 
 Notice how the deer-warning road-sign appears flatter in the undistorted image:
+
+[imageUndistortRoadImage]: ./output_images/undistort_road_img.png "Undistorted road image"
 ![alt text][imageUndistortRoadImage]
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
-I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines # through # in `another_file.py`).  Here's an example of my output for this step.  (note: this is not actually from one of the test images)
+ I used a combination of gradient (x-direction) and HLS colorspace thresholding on the S-channel. See `binarize_frame()` in `image_binarization.py` and the illustrations in the following images. 
 
-![alt text][image3]
+[image1XGradientThreshold]: ./output_images/1-x-gradient-threshold.png "Undistorted road image"
+![alt text][image1XGradientThreshold]
+
+[image2SThreshold]: ./output_images/2-S-threshold.png "Undistorted road image"
+![alt text][image2SThreshold]
+
+[image3CombinedGradientSThreshold]: ./output_images/3-combined-gradient-S-threshold.png "Undistorted road image"
+![alt text][image3CombinedGradientSThreshold]
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
