@@ -111,9 +111,10 @@ For "detecting" lane-lines for the first time (see `detect_lane_lines()` in `lan
 
 An example of such a polynomial-fit (Ax^2 + Bx + C), with the rectangular search windows:
 
+```python
 left_fit: [  5.93193079e-06   2.29126109e-02   2.94748692e+02]
-
 right_fit: [ -4.70246069e-06  -2.74283879e-02   9.98546569e+02]
+```
 
 [imageSecondOrderPolyfitDetection]: ./output_images/second-order-polyfit-detection.png "Second order polynomial fit on detected lane-lines"
 ![alt text][imageSecondOrderPolyfitDetection]
