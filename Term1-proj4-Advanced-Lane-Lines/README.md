@@ -48,7 +48,7 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 #### 1. Provide an example of a distortion-corrected image.
 
-Once the camera calibration is available from the previous step, it can be used to undistort real-world test images using the `cv2.undistort()` function:
+Once the camera calibration is available from the previous step, it can be used to undistort real-world test images using the `cv2.undistort()` function.
 
 Notice how the deer-warning road-sign appears flatter in the undistorted image:
 
