@@ -96,6 +96,8 @@ I verified that my perspective transform was working as expected by drawing the 
 [image1PerspectiveTransformStraight]: ./output_images/1-perspective-transform-straight.png "Perspective transform for straight lane lines"
 ![alt text][image1PerspectiveTransformStraight]
 
+Here is the perspective transform applied to curved lane-lines:
+
 [image2PerspectiveTransformCurved]: ./output_images/2-perspective-transform-curved.png "Perspective transform for curved lane lines"
 ![alt text][image2PerspectiveTransformCurved]
 
