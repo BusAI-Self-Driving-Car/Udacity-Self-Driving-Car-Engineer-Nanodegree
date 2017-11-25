@@ -177,7 +177,7 @@ Also, my frame-to-frame line-tracking seems to fail for sharp curves in the chal
 
 From the harder challenge video:
 
-[imageProblem2]: ./output_images/imageProblem2.png "Problem2"
+[imageProblem2]: ./output_images/problem2.png "Problem2"
 ![alt text][imageProblem2]
 
 We can visualize the output at various stages of the pipeline with test images. However, working with a video where we track lines across frames is a bit different, and cannot be visualized easily. In the future, I would like to implement a Picture-in-Picture inset to the output video to visualize, e.g. how well the gradient and color thresholding are performing. This would make it easier to tune the image-binarization algorithm, while looking at the output video simutaneously. 
