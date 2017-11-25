@@ -6,6 +6,7 @@
 
 import numpy as np
 import cv2
+import collections
 import matplotlib.pyplot as plt
 
 # Define a class to receive the characteristics of each line detection
@@ -13,56 +14,59 @@ class Line:
     
     def __init__(self):
         # was the line detected in the last iteration?
-        self.detected = False
-        
-        self.pixel_pos_x = np.array([])
-        self.pixel_pos_y = np.array([])        
-        
-        # x values of the last n fits of the line
-        self.recent_xfitted = []
-        
-        # average x values of the fitted line over the last n iterations
-        self.bestx = None     
-        
-        # polynomial coefficients averaged over the last n iterations
-        self.best_fit = None  
+        self.detected = False                
         
         # polynomial coefficients for the most recent fit
-        self.current_fit = [np.array([False])]  
+        self.current_fit = None
         
+        # Buffer of n last fits
+        self.deq_buffer_fit = collections.deque(maxlen=20)
+        
+        # difference in fit coefficients between last and new fits
+        self.diff_fit = None #np.array([0,0,0], dtype='float') 
+                
+        # polynomial coefficients averaged over the last n iterations
+        self.avg_fit = None  
+        
+        # --
         # radius of curvature of the line in some units
         self.radius_of_curvature = None 
         
         # distance in meters of vehicle center from the line
         self.line_base_pos = None 
-        
-        # difference in fit coefficients between last and new fits
-        self.diffs = np.array([0,0,0], dtype='float') 
-        
-        # x values for detected line pixels
-        self.fitx = None  
-        
-        # y values for detected line pixels
-        self.fity = None
-        
-    def get_line_polyfit(self):
-        # Fit a second order polynomial
-        fit = np.polyfit(self.pixel_pos_y, self.pixel_pos_x, 2)
-        return fit
     
-    def get_x_y_for_plotting(self, img_shape_y):
+    def update_line_fit(self, pixel_pos_x, pixel_pos_y):
+        self.current_fit = np.polyfit(pixel_pos_y, pixel_pos_x, 2)
         
+        if len(self.deq_buffer_fit)!=0:
+            self.diff_fit = np.subtract(self.current_fit, self.deq_buffer_fit[len(self.deq_buffer_fit)-1])
+            
+        self.deq_buffer_fit.append(self.current_fit)
+        self.avg_fit = np.mean(self.deq_buffer_fit, axis=0)
+        return
+    
+    def get_fit(self, use_avg_fit=False):
+        if use_avg_fit:
+            return self.avg_fit
+        else:
+            return self.current_fit
+            
+    def get_x_y(self, img_shape_y, use_avg_fit=False):
+            
         ploty = np.linspace(0, img_shape_y-1, img_shape_y )
+        if use_avg_fit==True and self.avg_fit is not None:
+            fit = self.avg_fit
+        else:
+            fit = self.current_fit
         
-        fit = self.get_line_polyfit()
-        fitx = fit[0] * ploty**2 + fit[1] * ploty + fit[2]
+        fitx = fit[0] * ploty**2 + fit[1] * ploty + fit[2]        
 
         return ploty, fitx
     
     def get_lane_line_curvature(self, dict_config_params, img_shape_y):
     
         ploty = []
-        ploty, fitx = self.get_x_y_for_plotting(img_shape_y)
+        ploty, fitx = self.get_x_y(img_shape_y, use_avg_fit=True)
         y_eval = np.max(ploty)
 
         y_meter_per_pixel = dict_config_params['y_meter_per_pixel']
@@ -207,11 +211,14 @@ def detect_lane_lines(binary_warped, line_left, line_right, plot_image=False):
     left_lane_inds = np.concatenate(left_lane_inds)
     right_lane_inds = np.concatenate(right_lane_inds)
     
-    line_left.pixel_pos_x, line_left.pixel_pos_y = get_lane_pixel_positions(nonzero, left_lane_inds)
-    line_right.pixel_pos_x, line_right.pixel_pos_y = get_lane_pixel_positions(nonzero, right_lane_inds)
+    pixel_pos_x, pixel_pos_y = get_lane_pixel_positions(nonzero, left_lane_inds)
+    line_left.update_line_fit(pixel_pos_x, pixel_pos_y)
     
-    ploty, left_fitx = line_left.get_x_y_for_plotting(binary_warped.shape[0])
-    ploty, right_fitx = line_right.get_x_y_for_plotting(binary_warped.shape[0])
+    pixel_pos_x, pixel_pos_y = get_lane_pixel_positions(nonzero, right_lane_inds)
+    line_right.update_line_fit(pixel_pos_x, pixel_pos_y)
+ 
+    ploty, left_fitx = line_left.get_x_y(binary_warped.shape[0], use_avg_fit=False)
+    ploty, right_fitx = line_right.get_x_y(binary_warped.shape[0], use_avg_fit=False)
     
     # Color the left and right line pixels
     out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
@@ -237,9 +244,9 @@ def track_lane_lines(binary_warped, line_left, line_right):
     out_img = (np.dstack((binary_warped, binary_warped, binary_warped))*255).astype(np.uint8)
             
     margin = 100  # dict_config_params['x_margin']
-    
-    left_fit = line_left.get_line_polyfit()
-    right_fit = line_right.get_line_polyfit()
+        
+    left_fit = line_left.get_fit(use_avg_fit=True)
+    right_fit = line_right.get_fit(use_avg_fit=True)
     
     x_left = left_fit[0] * (nonzeroy**2) + left_fit[1] * nonzeroy + left_fit[2]
     x_right = right_fit[0] * (nonzeroy**2) + right_fit[1] * nonzeroy + right_fit[2]
@@ -249,11 +256,14 @@ def track_lane_lines(binary_warped, line_left, line_right):
     
     left_lane_inds, right_lane_inds = get_lane_indices(nonzero, w_left, w_right)
     
-    line_left.pixel_pos_x, line_left.pixel_pos_y = get_lane_pixel_positions(nonzero, left_lane_inds)
-    line_right.pixel_pos_x, line_right.pixel_pos_y = get_lane_pixel_positions(nonzero, right_lane_inds)
-
-    ploty, left_fitx = line_left.get_x_y_for_plotting(binary_warped.shape[0])
-    ploty, right_fitx = line_right.get_x_y_for_plotting(binary_warped.shape[0])
+    pixel_pos_x, pixel_pos_y = get_lane_pixel_positions(nonzero, left_lane_inds)
+    line_left.update_line_fit(pixel_pos_x, pixel_pos_y)
+    
+    pixel_pos_x, pixel_pos_y = get_lane_pixel_positions(nonzero, right_lane_inds)
+    line_right.update_line_fit(pixel_pos_x, pixel_pos_y)
+ 
+    ploty, left_fitx = line_left.get_x_y(binary_warped.shape[0], use_avg_fit=True)
+    ploty, right_fitx = line_right.get_x_y(binary_warped.shape[0], use_avg_fit=True)
     
     # Color lane-pixels
     out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
@@ -293,28 +303,41 @@ def project_lane_lines_to_road(frame_undistorted, top_down_binary,
         warped = cv2.warpPerspective(top_down_binary, perspective_M_inv, img_size, flags=cv2.INTER_LINEAR)    
         return warped
     
-    # Create an image to draw the lines on
+    # Create an image to draw the lane area on
     color_warp = np.zeros_like(frame_undistorted).astype(np.uint8)
         
-    ploty, left_fitx = line_left.get_x_y_for_plotting(frame_undistorted.shape[0])
-    ploty, right_fitx = line_right.get_x_y_for_plotting(frame_undistorted.shape[0])
+    ploty, left_fitx = line_left.get_x_y(frame_undistorted.shape[0])
+    ploty, right_fitx = line_right.get_x_y(frame_undistorted.shape[0])
     
     # Recast the x and y points into usable format for cv2.fillPoly()
     pts_left = np.array([np.transpose(np.vstack([left_fitx, ploty]))])
     pts_right = np.array([np.flipud(np.transpose(np.vstack([right_fitx, ploty])))])
     pts = np.hstack((pts_left, pts_right))
-
-    # Draw the lane onto the warped blank image
+    
+    # Paint the lane area onto the warped blank image
     cv2.fillPoly(color_warp, np.int_([pts]), (0,255, 0))
-
+    
     # Warp the blank back to original image space using inverse perspective matrix (Minv)
     newwarp = cv2.warpPerspective(color_warp, perspective_M_inv, 
                                   (color_warp.shape[1], color_warp.shape[0])) 
     
     # Combine the result with the original image
-    result = cv2.addWeighted(frame_undistorted, 1, newwarp, 0.3, 0)
+    img_result = cv2.addWeighted(frame_undistorted, 1, newwarp, 0.3, 0)
     
-    return result
+    # Lines need to be handled separately to make them visible in the final image
+    # Draw lines on blank image
+    lines_warp = np.zeros_like(frame_undistorted).astype(np.uint8)    
+    cv2.polylines(lines_warp, np.int32([pts_left]), isClosed=False, color=(255,0, 0), thickness=20)
+    cv2.polylines(lines_warp, np.int32([pts_right]), isClosed=False, color=(0,0, 255), thickness=20)
+    newlinewarp = cv2.warpPerspective(lines_warp, perspective_M_inv, 
+                                      (lines_warp.shape[1], lines_warp.shape[0])) 
+    
+    idx = np.any([newlinewarp][0], axis=2)
+    
+    # Copy the lines to the combined image
+    img_result[idx] = newlinewarp[idx]
+            
+    return img_result
 
 
 # In[ ]:
@@ -331,5 +354,31 @@ def write_curvature_text_to_image(img, dict_config_params,
     
     font = cv2.FONT_ITALIC
     cv2.putText(img, 'Radius of curvature: {:.02f}m'.format(mean_curvature), (50, 50), font, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(img, 'Dist. from lane-center: {:.02f}m'.format(0.), (50, 100), font, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+    return
+
+    
+def write_lane_offset_text_to_image(img, dict_config_params,
+                                  line_left, line_right):
+    
+        len_y = img.shape[0]
+        img_mid_x = img.shape[1]/2
+        
+        ploty, left_fitx = line_left.get_x_y(len_y, use_avg_fit=True)        
+        x_left = left_fitx[np.argmax(ploty)]
+        
+        ploty, right_fitx = line_right.get_x_y(len_y, use_avg_fit=True)        
+        x_right = right_fitx[np.argmax(ploty)]
+        
+        lane_mid_x = x_left + (x_right - x_left)/2
+        offset = dict_config_params['x_meter_per_pixel'] * (img_mid_x - lane_mid_x)
+        
+        text = ''
+        font = cv2.FONT_ITALIC
+        if offset>0:
+            text = 'Car {:.02f} m right of lane-center: '.format(abs(offset))
+        else:
+            text = 'Car {:.02f} m left  of lane-center: '.format(abs(offset))
+            
+        cv2.putText(img, text, (50, 100), font, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
+        return
 
