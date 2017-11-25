@@ -109,9 +109,10 @@ The input to this stage is a binary image with a top-down (bird's eye) view.
 
 For "detecting" lane-lines for the first time (see `detect_lane_lines()` in `lane_lines.py`): I determine x-coordinates in the image that most likely coincide with the left and the right lane lines, by looking at the peaks of the histogram taken along the x-axis at the bottom of the image. Then I build rectangular search windows around these x-coordinates and retrieve the pixel positions for the lane-line pixels (See `get_lane_indices()` and `get_lane_pixel_positions()` in `lane_lines.py`). With the x and y pixel positions thus determined, a second-order polynomial fit is determined for the lane-lines using the function `Line.update_line_fit()` in `lane_lines.py`.
 
-An example of such a polynomial-fit (Ax^2 + Bx + C), which the rectangular search windows:
+An example of such a polynomial-fit (Ax^2 + Bx + C), with the rectangular search windows:
 
 left_fit: [  5.93193079e-06   2.29126109e-02   2.94748692e+02]
+
 right_fit: [ -4.70246069e-06  -2.74283879e-02   9.98546569e+02]
 
 [imageSecondOrderPolyfitDetection]: ./output_images/second-order-polyfit-detection.png "Second order polynomial fit on detected lane-lines"
@@ -126,11 +127,20 @@ In fact for tracking lines across frames, I don't use a single previous fit, rat
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-I did this in lines # through # in my code in `my_other_file.py`
+The radius of curvature of the lane and the offset of the car w.r.t. the lane center are calculated in the functions `write_curvature_text_to_image()` and `write_lane_offset_text_to_image()`, respectively, in `lane_lines.py`.
+
+**Radius of curvature** The x and y coordinates of the lane-lines are translated to their metric values using appropriate scaling factors provided in the project guidelines. Then a second-order polynomial fit is calculated on these metric values. The radius of curvature is then determined as described at https://www.intmath.com/applications-differentiation/8-radius-curvature.php. Finally, I average the radius for the left and right lines to determine the radius of curvature for the lane.
+
+**Car offset w.r.t. lane-center** This value is determined by taking the difference between the x-coordinates of the midpoint of the determined lane-lines and the center of the image. This assumes that the camera is mounted exactly along the center-axis of the car. 
+
+```python
+lane_mid_x = x_left + (x_right - x_left)/2
+offset = x_meter_per_pixel * (img_mid_x - lane_mid_x)
+```
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-I implemented this step in lines # through # in my code in `yet_another_file.py` in the function `map_lane()`.  Here is an example of my result on a test image:
+This is implemented by the function `project_lane_lines_to_road()` in `lane_lines.py`. Here is an example of my result on a test image:
 
 [imageLaneIdentified]: ./output_images/lane-identified.png "Lane identified"
 ![alt text][imageLaneIdentified]
