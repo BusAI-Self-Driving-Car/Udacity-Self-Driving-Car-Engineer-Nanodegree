@@ -8,7 +8,7 @@
 # In[7]:
 
 
-# In[8]:
+# In[3]:
 
 
 import cv2
@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 from camera_calibration import calibrate_camera, undistort_image
 from image_binarization import binarize_frame
 from perspective_transformation import get_perspective_transform, warp_image_to_top_down_view
-from lane_lines import Line, detect_lane_lines, track_lane_lines, project_lane_lines_to_road, write_curvature_text_to_image
+from lane_lines import Line, detect_lane_lines, track_lane_lines, project_lane_lines_to_road, write_curvature_text_to_image, write_lane_offset_text_to_image
 
 def initialize():
     # Calibrate camera
@@ -64,7 +64,7 @@ def test_binarize_frame():
 # test_binarize_frame()
 
 
-# In[10]:
+# In[4]:
 
 
 from lane_lines import Line
@@ -86,8 +86,8 @@ def test_detect_lane_lines():
     print("top_down_binary.shape = {}".format(top_down_binary.shape))
     out_image = detect_lane_lines(top_down_binary, line_left, line_right, plot_image=True)
 
-    print("left_fit: {}".format(line_left.get_line_polyfit()))
-    print("right_fit: {}".format(line_right.get_line_polyfit()))
+    print("left_fit: {}".format(line_left.line_polyfit))
+    print("right_fit: {}".format(line_right.line_polyfit))
     
 # test_detect_lane_lines()
 
@@ -141,6 +141,8 @@ def process_video_frame(frame):
                                                    perspective_M_inv)
     write_curvature_text_to_image(img_lines_on_road, dict_config_params, 
                                   line_left, line_right)
+    write_lane_offset_text_to_image(img_lines_on_road, dict_config_params, 
+                                  line_left, line_right)
         
     return img_lines_on_road
     
@@ -164,7 +166,7 @@ if __name__ == '__main__':
     line_right = Line()
     
     ## secs. 38--43 are difficult
-    #clip1 = VideoFileClip("project_video.mp4").subclip(0,0.2)
+    #clip1 = VideoFileClip("project_video.mp4").subclip(0,20)
     clip1 = VideoFileClip("project_video.mp4")
     clip = clip1.fl_image(process_video_frame)
     clip.write_videofile("out_project_video.mp4", audio=False)
