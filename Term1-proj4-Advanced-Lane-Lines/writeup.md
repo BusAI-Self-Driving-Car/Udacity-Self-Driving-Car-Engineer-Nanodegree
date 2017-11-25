@@ -59,6 +59,12 @@ Notice how the deer-warning road-sign appears flatter in the undistorted image:
 
  I used a combination of gradient (x-direction) and HLS colorspace thresholding on the S-channel. See `binarize_frame()` in `image_binarization.py` and the illustrations in the following images. 
 
+ I used the sobel operator to calculate the x- or y-gradients (opencv function `cv2.Sobel()`). The magnitude and direction gradients were derived from the x- and y-gradients. After experimenting somewhat with these gradients and their combinations, I concluded that just the x-gradient was sufficient to achieve a good performance with the project-video. 
+
+With hints from the project guidelines and after experimenting with the HLS colorspace, I found that the S (saturation)-channel captured the lane-lines quite well. It was independent of lane-line color (yellow/white) and pretty robust against contrast changes on the road-surface, e.g. due to shadows.
+
+My final image binarization routine uses a combination of x-gradient and S-channel thresholding. This combined thresholding is illustrated in the images below:
+
 [image1XGradientThreshold]: ./output_images/1-x-gradient-threshold.png "Undistorted road image"
 ![alt text][image1XGradientThreshold]
 
