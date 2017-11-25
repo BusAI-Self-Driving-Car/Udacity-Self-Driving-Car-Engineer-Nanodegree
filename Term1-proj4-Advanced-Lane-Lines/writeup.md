@@ -169,12 +169,14 @@ Here's a [link to my video result](./out_project_video.mp4)
 As can be seen from the images below, the image-binarization captures a lot of confounding details, which turns out badly for the line-fitting. Perhaps a Convolutional Neural Network would be more robust here, picking up its own features relevant to the problem and ignoring non-essential details. 
 
 In this image, the shadows on the road show up heavily in the binarized image:
+
 [imageProblem1]: ./output_images/problem1.png "Problem1"
 ![alt text][imageProblem1]
 
 Also, my frame-to-frame line-tracking seems to fail for sharp curves in the challenge videos. This is because the search window predicted from previous frames excludes sharply curving lane-lines deeper in the image. A solution to this could be to use the radius of curvature to correct the predicted search window. For a sharp curve, this could help us to "bend" the search window, so that the curved lane-lines are captured deeper into the image. 
 
 From the harder challenge video:
+
 [imageProblem2]: ./output_images/imageProblem2.png "Problem2"
 ![alt text][imageProblem2]
 
