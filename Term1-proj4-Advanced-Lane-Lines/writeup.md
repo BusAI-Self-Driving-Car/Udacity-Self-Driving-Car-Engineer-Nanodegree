@@ -97,7 +97,7 @@ I verified that my perspective transform was working as expected by drawing the 
 ![alt text][image1PerspectiveTransformStraight]
 
 [image2PerspectiveTransformCurved]: ./output_images/2-perspective-transform-curved.png "Perspective transform for curved lane lines"
-![alt text][image2SThreshold]
+![alt text][image2PerspectiveTransformCurved]
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
