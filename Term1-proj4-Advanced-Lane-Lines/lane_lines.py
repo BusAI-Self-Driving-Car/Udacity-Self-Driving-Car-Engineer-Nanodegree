@@ -375,9 +375,9 @@ def write_lane_offset_text_to_image(img, dict_config_params,
         text = ''
         font = cv2.FONT_ITALIC
         if offset>0:
-            text = 'Car {:.02f} m right of lane-center: '.format(abs(offset))
+            text = 'Car {:.02f} m right of lane-center'.format(abs(offset))
         else:
-            text = 'Car {:.02f} m left  of lane-center: '.format(abs(offset))
+            text = 'Car {:.02f} m left  of lane-center'.format(abs(offset))
             
         cv2.putText(img, text, (50, 100), font, 0.7, (255, 255, 255), 2, cv2.LINE_AA)
         return

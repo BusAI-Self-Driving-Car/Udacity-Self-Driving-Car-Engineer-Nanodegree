@@ -166,7 +166,7 @@ if __name__ == '__main__':
     line_right = Line()
     
     ## secs. 38--43 are difficult
-    #clip1 = VideoFileClip("project_video.mp4").subclip(0,20)
+    #clip1 = VideoFileClip("./videos/project_video.mp4").subclip(0,20)
     clip1 = VideoFileClip("./videos/project_video.mp4")
     clip = clip1.fl_image(process_video_frame)
     clip.write_videofile("out_project_video.mp4", audio=False)
