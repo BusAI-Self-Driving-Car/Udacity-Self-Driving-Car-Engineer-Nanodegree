@@ -17,6 +17,8 @@ The goals / steps of this project are the following:
 
 Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
+<span style="color:blue">*Rather than cross-referencing specific line numbers in the code, I will mention functions which implement a specific functionality. Since code can change rapidly, even after project submission, rendering any line-numbers mentioned in this README invalid.*</span>
+
 ---
 
 ### Writeup / README
@@ -103,9 +105,24 @@ Here is the perspective transform applied to curved lane-lines:
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
-Then I did some other stuff and fit my lane lines with a 2nd order polynomial kinda like this:
+The input to this stage is a binary image with a top-down (bird's eye) view. 
 
-![alt text][image5]
+For "detecting" lane-lines for the first time (see `detect_lane_lines()` in `lane_lines.py`): I determine x-coordinates in the image that most likely coincide with the left and the right lane lines, by looking at the peaks of the histogram taken along the x-axis at the bottom of the image. Then I build rectangular search windows around these x-coordinates and retrieve the pixel positions for the lane-line pixels (See `get_lane_indices()` and `get_lane_pixel_positions()` in `lane_lines.py`). With the x and y pixel positions thus determined, a second-order polynomial fit is determined for the lane-lines using the function `Line.update_line_fit()` in `lane_lines.py`.
+
+An example of such a polynomial-fit (Ax^2 + Bx + C), which the rectangular search windows:
+
+left_fit: [  5.93193079e-06   2.29126109e-02   2.94748692e+02]
+right_fit: [ -4.70246069e-06  -2.74283879e-02   9.98546569e+02]
+
+[imageSecondOrderPolyfitDetection]: ./output_images/second-order-polyfit-detection.png "Second order polynomial fit on detected lane-lines"
+![alt text][imageSecondOrderPolyfitDetection]
+
+Once the lane-lines are detected at the beginning, I track them over the subsequent frames by specifying a search window around the polynomial fit determined previously. This saves us an exhaustive search from bottom-to-top of the image as required during the line detection described above. 
+
+In fact for tracking lines across frames, I don't use a single previous fit, rather an average over some previous fits to place the search window. Also, for plotting the lane-line on the output image, I use the average fit which includes the current fit. This low-pass filtering is done in the hope that the wobbliness or flutteriness of lines is reduced. 
+
+[imageSecondOrderPolyfitTracking]: ./output_images/second-order-polyfit-tracking.png "Second order polynomial fit on tracked lane-lines"
+![alt text][imageSecondOrderPolyfitTracking]
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
