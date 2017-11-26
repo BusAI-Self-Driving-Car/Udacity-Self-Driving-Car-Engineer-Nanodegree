@@ -179,3 +179,15 @@ From the harder challenge video:
 ![alt text][imageProblem2]
 
 We can visualize the output at various stages of the pipeline with test images. However, working with a video where we track lines across frames is a bit different, and cannot be visualized easily. In the future, I would like to implement a Picture-in-Picture inset to the output video to visualize, e.g. how well the gradient and color thresholding are performing. This would make it easier to tune the image-binarization algorithm, while looking at the output video simutaneously. 
+
+---
+
+### For the future
+
+* Introduce sanity checks on lane-line detection/tracking. If sanity checks fail, at runtime, alter strategy for line detection/tracking.
+
+ * Check if detected right and left lane-lines are parallel (if they are straight)
+ * Check if they have the same radius of curvature
+ * Check if the distance between them has a reasonable value
+
+* Use radius of curvature to bend search window while tracking lines from frame-to-frame
