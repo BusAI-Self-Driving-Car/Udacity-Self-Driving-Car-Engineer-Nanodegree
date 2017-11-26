@@ -185,8 +185,8 @@ We can visualize the output at various stages of the pipeline with test images. 
 ### For the future
 
 * Introduce sanity checks on lane-line detection/tracking. If sanity checks fail, at runtime, alter strategy for line detection/tracking.
- * Check if detected right and left lane-lines are parallel (if they are straight)
- * Check if they have the same radius of curvature
- * Check if the distance between them has a reasonable value
+	* Check if detected right and left lane-lines are parallel (if they are straight)
+ 	* Check if they have the same radius of curvature
+ 	* Check if the distance between them has a reasonable value
 
 * Use radius of curvature to bend search window while tracking lines from frame-to-frame
