@@ -17,8 +17,6 @@ The goals / steps of this project are the following:
 
 Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
-*Rather than cross-referencing line numbers in the code, I will mention functions which implement a specific functionality. Code can change rapidly even after project submission, rendering any line-numbers mentioned in this README invalid.*
-
 ---
 
 ### Writeup / README
@@ -35,11 +33,11 @@ The code for this step is contained in the file `camera_calibration.py`.
 
 Here we determine the camera matrix, which captures the transformation between real-world 3D coordinates of objects and their corresponding 2D image coordinates. For this purpose we use a checkerboard as our object, since it has a simple pattern with good contrast and known dimensions. We use the internal corners of the checkerboard to determine the 3D world and 2D image coordinates. 
 
-Since the checkerboard is flat, we can set its z-coordinates to 0, and for every checkerboard image, we can assume the same real-world checkerboard object with the same (x, y, z) coordinates. Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time all checkerboard corners are detected in a test image.  
+Since the checkerboard is flat, we can set its z-coordinates to 0, and for every checkerboard image, we can assume the same real-world checkerboard object with the same (x, y, z) coordinates. Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time all checkerboard corners are detected in a test image (line 66 in `camera_calibration.py`).  
 
-`imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful checkerboard detection.  
+`imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful checkerboard detection (line 67 in `camera_calibration.py`).  
 
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to a test image using the `cv2.undistort()` function and obtained the following result.
+I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function (line 74 in `camera_calibration.py`).  I applied this distortion correction to a test image using the `cv2.undistort()` function and obtained the following result (line 86 in `camera_calibration.py`).
 
 [imageUndistortCheckerboard]: ./output_images/undistort_checkerboard.png "Undistorted checkerboard"
 ![alt text][imageUndistortCheckerboard]
@@ -48,7 +46,7 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 #### 1. Provide an example of a distortion-corrected image.
 
-Once the camera calibration is available from the previous step, it can be used to undistort real-world test images using the `cv2.undistort()` function.
+Once the camera calibration is available from the previous step, it can be used to undistort real-world test images using the `cv2.undistort()` function (line 86 in `camera_calibration.py`).
 
 Notice how the deer-warning road-sign appears flatter in the undistorted image:
 
@@ -57,13 +55,13 @@ Notice how the deer-warning road-sign appears flatter in the undistorted image:
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
- I used a combination of gradient (x-direction) and HLS colorspace thresholding on the S-channel. See `binarize_frame()` in `image_binarization.py` and the illustrations in the following images. 
+ I used a combination of gradient (x-direction) and HLS colorspace thresholding on the S-channel. See `binarize_frame()` at line 100 in `image_binarization.py` and the illustrations in the following images. 
 
- I used the sobel operator to calculate the x- or y-gradients (opencv function `cv2.Sobel()`). The magnitude and direction gradients were derived from the x- and y-gradients. After experimenting somewhat with these gradients and their combinations, I concluded that just the x-gradient was sufficient to achieve a good performance with the project-video. Since the lane-lines are more or less vertical in the camera images, the x-gradient captures them most clearly. 
+ I used the sobel operator to calculate the x- or y-gradients (opencv function `cv2.Sobel()`, line 29 in `image_binarization.py`). The magnitude and direction gradients were derived from the x- and y-gradients (line 60 and line 90 in `image_binarization.py`). After experimenting somewhat with these gradients and their combinations, I concluded that just the x-gradient was sufficient to achieve a good performance with the project-video. Since the lane-lines are more or less vertical in the camera images, the x-gradient captures them most clearly. 
 
-With hints from the project guidelines and after experimenting with the HLS colorspace, I found that the S (saturation)-channel captured the lane-lines quite well. It was independent of lane-line color (yellow/white) and pretty robust against contrast changes on the road-surface, e.g. due to shadows.
+With hints from the project guidelines and after experimenting with the HLS colorspace, I found that the S (saturation)-channel captured the lane-lines quite well (line 135 in `image_binarization.py`). It was independent of lane-line color (yellow/white) and pretty robust against contrast changes on the road-surface, e.g. due to shadows.
 
-My final image binarization routine uses a combination of x-gradient and S-channel thresholding. This combined thresholding is illustrated in the images below:
+My final image binarization routine uses a combination of x-gradient and S-channel thresholding (line 122 in `image_binarization.py`). This combined thresholding is illustrated in the images below:
 
 [image1XGradientThreshold]: ./output_images/1-x-gradient-threshold.png "Undistorted road image"
 ![alt text][image1XGradientThreshold]
@@ -76,7 +74,7 @@ My final image binarization routine uses a combination of x-gradient and S-chann
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The code for my perspective transform includes the functions `get_src_dst_vertices()`, `get_perspective_transform()`, and `warp_image_to_top_down_view()` in file `perspective_transformation.py`. 
+The code for my perspective transform includes the functions `get_src_dst_vertices()` (line 74 in `perspective_transformation.py`), `get_perspective_transform()` (line 95 in `perspective_transformation.py`), and `warp_image_to_top_down_view()` (line 88 in `perspective_transformation.py`). 
 
 The source and destination points required for determining the perspective transformation are obtained from the `get_src_dst_vertices()`, where after many trials, they were hardcoded to:
 
@@ -113,7 +111,7 @@ Here is the perspective transform applied to curved lane-lines:
 
 The input to this stage is a binary image with a top-down (bird's eye) view. 
 
-For "detecting" lane-lines for the first time (see `detect_lane_lines()` in `lane_lines.py`): I determine x-coordinates in the image that most likely coincide with the left and the right lane lines, by looking at the peaks of the histogram taken along the x-axis at the bottom of the image. Then I build rectangular search windows around these x-coordinates and retrieve the pixel positions for the lane-line pixels (See `get_lane_indices()` and `get_lane_pixel_positions()` in `lane_lines.py`). With the x and y pixel positions thus determined, a second-order polynomial fit is determined for the lane-lines using the function `Line.update_line_fit()` in `lane_lines.py`.
+For "detecting" lane-lines for the first time (see `detect_lane_lines()` at line 126 in `lane_lines.py`): I determine x-coordinates in the image that most likely coincide with the left and the right lane lines, by looking at the peaks of the histogram taken along the x-axis at the bottom of the image. Then I build rectangular search windows around these x-coordinates and retrieve the pixel positions for the lane-line pixels (See `get_lane_indices()` at line 99 and `get_lane_pixel_positions()` at line 113 in `lane_lines.py`). With the x and y pixel positions thus determined, a second-order polynomial fit is determined for the lane-lines using the function `Line.update_line_fit()` at line 38 in `lane_lines.py`.
 
 An example of such a polynomial-fit (Ax^2 + Bx + C), with the rectangular search windows:
 
@@ -125,7 +123,7 @@ right_fit: [ -4.70246069e-06  -2.74283879e-02   9.98546569e+02]
 [imageSecondOrderPolyfitDetection]: ./output_images/second-order-polyfit-detection.png "Second order polynomial fit on detected lane-lines"
 ![alt text][imageSecondOrderPolyfitDetection]
 
-Once the lane-lines are detected at the beginning, I track them over the subsequent frames by specifying a search window around the polynomial fit determined previously (see `track_lane_lines()` in `lane_lines.py`). This saves us an exhaustive search from bottom-to-top of the image as required during the line detection described above. 
+Once the lane-lines are detected at the beginning, I track them over the subsequent frames by specifying a search window around the polynomial fit determined previously (see `track_lane_lines()` at line 239 in `lane_lines.py`). This saves us an exhaustive search from bottom-to-top of the image as required during the line detection described above. 
 
 In fact for tracking lines across frames, I don't use a single previous fit, rather an average over some previous fits to place the search window. Also, for plotting the lane-line on the output image, I use the average fit which includes the current fit. This low-pass filtering is done in the hope that the wobbliness or flutteriness of lines is reduced. Here is an example image of tracked lane-lines:
 
@@ -134,7 +132,7 @@ In fact for tracking lines across frames, I don't use a single previous fit, rat
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-The radius of curvature of the lane and the offset of the car w.r.t. the lane center are calculated in the functions `write_curvature_text_to_image()` and `write_lane_offset_text_to_image()`, respectively, in `lane_lines.py`.
+The radius of curvature of the lane and the offset of the car w.r.t. the lane center are calculated in the functions `write_curvature_text_to_image()` at line 347 and `write_lane_offset_text_to_image()` at line 360, respectively, in `lane_lines.py`.
 
 **Radius of curvature** The x and y coordinates of the lane-lines are translated to their metric values using appropriate scaling factors provided in the project guidelines. Then a second-order polynomial fit is calculated on these metric values. The radius of curvature is then determined as described at https://www.intmath.com/applications-differentiation/8-radius-curvature.php. Finally, I average the radius for the left and right lines to determine the radius of curvature for the lane.
 
@@ -147,7 +145,7 @@ offset = x_meter_per_pixel * (img_mid_x - lane_mid_x)
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
-This is implemented by the function `project_lane_lines_to_road()` in `lane_lines.py`. Here is an example of my result on a test image:
+This is implemented by the function `project_lane_lines_to_road()` at line 298 in `lane_lines.py`. Here is an example of my result on a test image:
 
 [imageLaneIdentified]: ./output_images/lane-identified.png "Lane identified"
 ![alt text][imageLaneIdentified]
