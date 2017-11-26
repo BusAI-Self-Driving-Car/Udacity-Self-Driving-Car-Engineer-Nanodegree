@@ -17,7 +17,7 @@ The goals / steps of this project are the following:
 
 Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
-<span style="color:blue">*Rather than cross-referencing specific line numbers in the code, I will mention functions which implement a specific functionality. Since code can change rapidly, even after project submission, rendering any line-numbers mentioned in this README invalid.*</span>
+*Rather than cross-referencing line numbers in the code, I will mention functions which implement a specific functionality. Code can change rapidly even after project submission, rendering any line-numbers mentioned in this README invalid.*
 
 ---
 
@@ -166,7 +166,7 @@ Here's a [link to my video result](./out_project_video.mp4)
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-As can be seen from the images below, the image-binarization captures a lot of confounding details, which turns out badly for the line-fitting. Perhaps a Convolutional Neural Network would be more robust here, picking up its own features relevant to the problem and ignoring non-essential details. 
+As can be seen from the images below, the image-binarization captures a lot of confounding details, which may turn out badly for the line-fitting. Perhaps a Convolutional Neural Network would be more robust here, picking up its own features relevant to the problem and ignoring non-essential details. 
 
 In this image, the shadows on the road show up heavily in the binarized image:
 
