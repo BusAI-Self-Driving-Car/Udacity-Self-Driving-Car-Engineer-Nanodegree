@@ -26,6 +26,8 @@ from feature_extracters import transform_colorspace, extract_features, extract_h
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
     
+    car_windows = []
+    
     draw_img = np.copy(img)
     img = img.astype(np.float32)/255
     
@@ -109,15 +111,17 @@ def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
                 xbox_left = np.int(xleft * scale)
                 ytop_draw = np.int(ytop * scale)
                 win_draw = np.int(window * scale)
+                
+                car_windows.append(((xbox_left, ytop_draw + y_start_stop[0]),
+                              (xbox_left + win_draw, ytop_draw + win_draw + y_start_stop[0])))
                 cv2.rectangle(draw_img,
-                              (xbox_left, ytop_draw + y_start_stop[0]),
-                              (xbox_left + win_draw, ytop_draw + win_draw + y_start_stop[0]),
+                              car_windows[-1][0], car_windows[-1][1],
                               (0, 255, 0), 6) 
     
     
     #print("\nfind_cars(): img_features.shape = {}".format(img_features.shape))
-    print("count_window: {}, count_car_window: {}".format(count_window, count_car_window))
-    return draw_img
+    #print("count_window: {}, count_car_window: {}".format(count_window, count_car_window))
+    return draw_img, car_windows
 
 
 # In[ ]:
@@ -159,7 +163,8 @@ def search_windows(img, windows, classifier, X_scaler):
             on_windows.append(window)
             
     #print("\nsearch_windows(): img_features.shape: {}".format(img_features.shape))
-    print("count_window: {}, count_car_window: {}".format(count_window, count_car_window))
+    #print("count_window: {}, count_car_window: {}".format(count_window, count_car_window))
+    
     # Return windows for positive detections
     return on_windows
 
@@ -233,4 +238,65 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
         cv2.rectangle(imcopy, bbox[0], bbox[1], color, thick)
 
     return imcopy
+
+
+# In[ ]:
+
+
+def add_heat(heatmap, bbox_list):
+
+    for box in bbox_list:
+        # Add += 1 for all pixels inside each bbox        
+        heatmap[box[0][1]:box[1][1], box[0][0]:box[1][0]] += 1
+
+    return heatmap
+    
+def apply_heat_threshold(heatmap, threshold):
+    heatmap[heatmap <= threshold] = 0
+    return heatmap
+
+def draw_labeled_bboxes(img, labels):
+    
+    # Iterate through all detected cars
+    for car_number in range(1, labels[1]+1):
+
+        # Find pixels with each car_number label value
+        nonzero = (labels[0] == car_number).nonzero()
+
+        # Identify x and y values of those pixels
+        nonzeroy = np.array(nonzero[0])
+        nonzerox = np.array(nonzero[1])
+
+        # Define a bounding box based on min/max x and y
+        bbox = ((np.min(nonzerox), np.min(nonzeroy)), (np.max(nonzerox), np.max(nonzeroy)))
+
+        # Draw the box on the image
+        cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
+
+    return img
+
+
+# In[ ]:
+
+
+from scipy.ndimage.measurements import label
+
+def get_heat_based_bboxes(img, hot_windows):
+    
+    heat = np.zeros_like(img[:,:,0]).astype(np.float)
+    
+    # Add heat to each box in box list
+    heat = add_heat(heat, hot_windows)
+
+    # Apply threshold to help remove false positives
+    heat = apply_heat_threshold(heat, 4)
+
+    # Visualize the heatmap when displaying    
+    heatmap = np.clip(heat, 0, 255)
+
+    # Find final boxes from heatmap using label function
+    labels = label(heatmap)
+    draw_img = draw_labeled_bboxes(np.copy(img), labels)
+    
+    return draw_img, heatmap
 
