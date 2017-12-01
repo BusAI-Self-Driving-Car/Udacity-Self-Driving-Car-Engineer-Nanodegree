@@ -43,7 +43,7 @@ def transform_colorspace(image, cspace):
         elif cspace == 'YUV':
             feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YUV)
         elif cspace == 'YCrCb':
-            feature_image = cv2.cvtColor(img, cv2.COLOR_RGB2YCrCb)
+            feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2YCrCb)
     else: 
         feature_image = np.copy(image)  
         
@@ -67,7 +67,7 @@ def get_hog_features(img, orient, pix_per_cell, cell_per_block, vis=False, featu
                        visualise=False, feature_vector=feature_vec)
         hog_image = None
         
-    features = features.ravel()
+    #features = features.ravel()
     return features, hog_image
     
     
@@ -76,7 +76,7 @@ def extract_hog_features(image, hog_feat=True, visualize=False):
     if hog_feat is not True:
         return [], None
     
-    if dict_config_params['use_gray_img']:
+    if dict_config_params['use_gray_img'] is True:
         feature_image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     else:
         feature_image = transform_colorspace(image, dict_config_params['hog_cspace'])
@@ -103,7 +103,7 @@ def extract_hog_features(image, hog_feat=True, visualize=False):
                                                        n_orientations, 
                                                        pixels_per_cell, cells_per_block, 
                                                        vis=visualize, feature_vec=False)
-                hog_features.extend(features)
+                hog_features.append(features)                
         else:
             hog_features, hog_image = get_hog_features(feature_image[:,:,hog_channel], 
                                                        n_orientations, 
@@ -179,7 +179,7 @@ def extract_features(image, verbose=True,
     # --- Extract HOG features ---    
     hog_features, hog_image = extract_hog_features(image, 
                                                    hog_feat=hog_feat, visualize=verbose)    
-    features.append(hog_features)    
+    features.append(np.ravel(hog_features))    
 
     # --- Extract Color features ---
     color_features = extract_color_features(image, 
