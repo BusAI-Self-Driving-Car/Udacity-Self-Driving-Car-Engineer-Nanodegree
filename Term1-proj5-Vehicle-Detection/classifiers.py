@@ -3,23 +3,13 @@
 
 # In[1]:
 
-
-from IPython.core.display import display, HTML
-
-### Widen notebook to fit browser window
-display(HTML("<style>.container { width:100% !important; }</style>"))
-
-
-# In[2]:
-
-
-get_ipython().run_cell_magic('javascript', '', '// Press ctrl-M followed by r to "run all cells" in this notebook\n\nJupyter.keyboard_manager.command_shortcuts.add_shortcut(\'r\', {\n    help : \'run all cells\',\n    help_index : \'zz\',\n    handler : function (event) {\n        IPython.notebook.execute_all_cells();\n        return false;\n    }}\n);')
-
-
 # In[3]:
 
 
+import time
 import numpy as np
+
+import matplotlib.image as mpimg
 
 from sklearn.svm import LinearSVC
 from sklearn.preprocessing import StandardScaler
@@ -57,14 +47,14 @@ def fit_svm(X, labels, verbose=True):
 
     if verbose:
         print("\n",round(t2-t, 2), 'Seconds to train SVC...')
-        print('\nTest Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
+        print('Test Accuracy of SVC = ', round(svc.score(X_test, y_test), 4))
         
         t=time.time()    
         n_predict = 10
-        print('\nMy SVC predicts:     ', svc.predict(X_test[0:n_predict]))
+        print('My SVC predicts:     ', svc.predict(X_test[0:n_predict]))
         print('For these',n_predict, 'labels: ', y_test[0:n_predict])
         t2 = time.time()
-        print("\n",round(t2-t, 5), 'Seconds to predict', n_predict,'labels with SVC')
+        print(" ",round(t2-t, 5), 'Seconds to predict', n_predict,'labels with SVC')
     
     return svc, X_scaler
 
@@ -112,12 +102,13 @@ def get_training_data():
 
 
     # Create an array stack of feature vectors
-    X = np.vstack((feature_vectors_car, feature_vectors_notcar)).astype(np.float64)                        
-    print("len(X): {}".format(len(X)))
+    X = np.vstack((feature_vectors_car, feature_vectors_notcar)).astype(np.float64)                            
 
     # Define the labels vector
     labels = np.hstack((np.ones(len(feature_vectors_car)), 
                         np.zeros(len(feature_vectors_notcar))))
+    
+    print("X.shape: {}, labels.shape: {}".format(X.shape, labels.shape))
     
     return X, labels
 

@@ -27,12 +27,11 @@ def get_img_filenames():
     imgs_dir_cars = join(imgs_dir, 'vehicles/')
     imgs_dir_notcars = join(imgs_dir, 'non-vehicles/')
     
-    print("listdir(imgs_dir_cars): {}".format(listdir(imgs_dir_cars)))
-    print("listdir(imgs_dir_notcars): {}".format(listdir(imgs_dir_notcars)))
+    #print("listdir(imgs_dir_cars): {}".format(listdir(imgs_dir_cars)))
+    #print("listdir(imgs_dir_notcars): {}".format(listdir(imgs_dir_notcars)))
     
     # Import filenames of all "car" images in the dataset
     img_filenames_cars = list_img_filenames(imgs_dir_cars)
-    print()
     print("len(img_filenames_cars): {}".format(len(img_filenames_cars)))
     
     # Import filenames of all "notcar" images in the dataset

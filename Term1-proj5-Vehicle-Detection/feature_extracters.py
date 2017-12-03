@@ -3,13 +3,6 @@
 
 # In[15]:
 
-
-from IPython.core.display import display, HTML
-
-### Widen notebook to fit browser window
-display(HTML("<style>.container { width:100% !important; }</style>"))
-
-
 # In[16]:
 
 
