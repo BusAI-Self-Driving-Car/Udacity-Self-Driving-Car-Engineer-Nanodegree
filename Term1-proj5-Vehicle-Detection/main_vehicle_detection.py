@@ -41,7 +41,8 @@ def process_video_frame(frame):
     hot_windows = []    
     
     # Search for cars directly with HOG subsampling
-    for scale in np.arange(1, dict_config_params['hog_subsampling_max'], 
+    for scale in np.arange(dict_config_params['hog_subsampling_min'],
+                           dict_config_params['hog_subsampling_max'], 
                            dict_config_params['hog_subsampling_step']):
         _, windows = find_cars(frame, y_start_stop, svc, X_scaler, scale=scale)
         hot_windows += windows
@@ -64,7 +65,7 @@ def process_video_frame(frame):
     scale = 1/4.
     thumb_heatmap = cv2.resize(heatmap, 
                                dsize=(int(scale * img_width), int(scale * img_height)))
-    draw_frame[0:thumb_heatmap.shape[0], 0:thumb_heatmap.shape[1], :] = thumb_heatmap
+    #draw_frame[0:thumb_heatmap.shape[0], 0:thumb_heatmap.shape[1], :] = thumb_heatmap
     
     # Thumbnail -- windows with cars detected in them
     scale = 1/4.
@@ -74,7 +75,7 @@ def process_video_frame(frame):
                                dsize=(thumb_width, thumb_height))
     
     draw_frame[0:thumb_window_img.shape[0], 
-               thumb_width:thumb_width+thumb_window_img.shape[1], :] = thumb_window_img
+               0:0+thumb_window_img.shape[1], :] = thumb_window_img
     
     return draw_frame
 
@@ -109,7 +110,8 @@ def main_test_images():
         hot_windows = []
         all_windows = []
         if True:
-            for scale in np.arange(1, dict_config_params['hog_subsampling_max'], 
+            for scale in np.arange(dict_config_params['hog_subsampling_min'],
+                                   dict_config_params['hog_subsampling_max'], 
                                    dict_config_params['hog_subsampling_step']):
                 windows, car_windows = find_cars(image, y_start_stop, 
                                                      svc, X_scaler, 

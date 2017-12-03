@@ -27,10 +27,12 @@ dict_config_params = {
     'hog_n_orientations': 9,
     'hog_pixels_per_cell': 8,
     'hog_cells_per_block': 2,
+    
+    'hog_subsampling_min': 1,
     'hog_subsampling_max': 3,
     'hog_subsampling_step': 1,
     
     # Heatmap
-    'heat_threshold':2,
-    'buffer_len_hotwindows':7,
+    'heat_threshold':3,  #2
+    'buffer_len_hotwindows':5,  #7
 }
