@@ -115,21 +115,9 @@ Here's a [link to my video result](./out_video.mp4)
 
 The `find_cars()` function in `sliding_windows.py` returns a list of "hot" windows -- windows which are classified as containing a car. By itself, this list contains some misclassified windows, so-called false positives. 
 
-Typically, these are single random instances of misclassification, which we should disappear from one frame to the next, if the feature extraction and image classification performs well. Based on this hypothesis, I accumulated postitive detections over a certain number of consecutive frames into a heatmap. If an area in the image is consistently detected over consecutive frames, it will accumulate a higher heat value. On the other hand, single random instances of misclassified detections will not accumulate as much heat. Thresholding the heatmap should then remove these false positives. 
+Typically, these are single random instances of misclassification, which we should disappear from one frame to the next, if the feature extraction and image classification performs well. Based on this hypothesis, I accumulated postitive detections over a certain number of consecutive frames into a heatmap. If an area in the image is consistently detected over consecutive frames, it will accumulate a higher heat value. On the other hand, single random instances of misclassified detections will not accumulate as much heat. Thresholding the heatmap should then remove these false positives. These ideas are implemented in the functions `get_heat_based_bboxes()`, `add_heat()`, and `apply_heat_threshold()` functions in `sliding_windows.py`.
 
 I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I assumed each blob corresponded to a vehicle and drew tight bounding boxes around the blobs to indicate the vehicle. 
-
-Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
-
-### Here are six frames and their corresponding heatmaps:
-
-![alt text][image5]
-
-### Here is the output of `scipy.ndimage.measurements.label()` on the integrated heatmap from all six frames:
-![alt text][image6]
-
-### Here the resulting bounding boxes are drawn onto the last frame in the series:
-![alt text][image7]
 
 ---
 
