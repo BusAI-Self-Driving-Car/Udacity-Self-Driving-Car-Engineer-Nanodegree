@@ -1,0 +1,20 @@
+,Colorspace,#Features,SVC test-accuracy,
+HOG,Gray,1764,0.95,many false pos.
+,RGB,5292,0.96,
+,HSV,5292,0.98,less false pos.
+,YcrCb,5292,0.97,many false pos.
+,,,,
+,,,,
+,,,,
+HOG+spatial,HOG cspace,Spatial cspace,#Features,SVC test-accuracy
+,HSV,RGB,8364,0.9876
+,,,,
+,,,,
+,,,,
+HOG+color,HSV,HSV,8460,0.9867
+,,,,
+,,,,
+,,,,
+,,,,
+,,,,
+HOG+Hist,,,,

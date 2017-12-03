@@ -1,33 +1,31 @@
-## Writeup Template
+## Writeup
 
 **Vehicle Detection Project**
 
 The goals / steps of this project are the following:
 
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
-* Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
-* Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
-* Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
+* Optionally apply a color transform and append binned color features, as well as histograms of color, to the HOG feature vector. 
+* Note: for those first two steps don't forget to normalize the features and randomize a selection for training and testing.
+* Implement a sliding-window technique and use the trained classifier to search for vehicles in images.
+* Run the pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
+
+
 [image5]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
 [image7]: ./examples/output_bboxes.png
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
 ---
 ### Writeup / README
 
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.
 
 You're reading it!
 
@@ -35,46 +33,79 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
+HOG feature extraction is implemented in the function `extract_hog_features()` in `feature_extracters.py`). This function transforms the input image to the HSV colorspace and eventually calls `skimage.feature.hog()` to extract the HOG features. 
 
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
+Features were extracted from images of vehicle and non-vehicle classes. One example of each class is shown below.
 
+[image1]: ./examples/car_not_car.png
 ![alt text][image1]
-
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
-
-
-![alt text][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I explored different parameter settings for HOG feature extraction and converged to the parameter set below. This set had the best test-accuracy of 0.98 for a linear SVM clssifier, and seemed to aid car detection best with few false positives. 
+
+``` python
+# HOG feature params
+'use_gray_img':False,
+'hog_channel':'ALL',
+'hog_cspace':'HSV',
+'hog_n_orientations': 9,
+'hog_pixels_per_cell': 8,
+'hog_cells_per_block': 2,
+'hog_subsampling_max': 3
+```
+
+Here is an example of feature extraction using the above parameter values:
+
+[image2]: ./output_images/HOG_example.png
+![alt text][image2]
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+In addition to the HOG features which capture object shape, I used color features to capture object appearance. The color features consisted of a downsampled image and histograms of intensity values in the individual channels of the image. I used the following parameter set for extracting these features:
+
+```python
+'color_cspace':'HSV',
+'color_spatial_size':(32, 32),
+'color_hist_bins':32,
+'color_hist_range':(0, 256)
+```
+
+I found that using color features in addition to HOG features further improved the test accuracy of the linear SVM classifier while reducing the false positive rate further.
+
+For each training (car / non-car) image, the HOG- and color-features are concatenated to form a one single feature vector. These feature vectors are stacked to form the matrix `X`, and labels car or non-car corresponding to each feature vector  are stored in a vector of `label`s (see function `X, labels = get_training_data()` in `classifiers.py`). 
+
+Then, a linear SVM classifier is fitted to the training data in the function `fit_svm(X, labels)` in file `classifiers.py`. Before training the classifier, the columns of the stacked feature vectors are normalized using `sklearn.preprocessing.StandardScaler()` in order to avoid any particular feature dominating the others by sheer scale. 
+
+The training data is split into training (80 %) and test data (20 %) and randomy shuffled. An accuracy score for the classification is calculated on the test data using `svc.score()`.
 
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
+Initially I implemented a mechanism where a list of windows (x, y-coordinates) was generated for a region of interest in an image, given window size and overlap (`slide_window()` function in `sliding_windows.py`).  This windows list was then filtered for windows containing cars using the function `search_windows()` in `sliding_windows.py`. The `search_windows()` function extracted HOG and color features for each window and classified the window as either containing a car or not. This process was computationally very expensive, since the HOG features were extracted separately for each window. 
 
+To reduce this computationaly complexity, I altered the above mechanism so that the HOG features are extracted only once for a region of interest in an image. Later during window classification, only the portion of the large HOG feature array inside that window is considered. This refined mechanism is implemented in the function `find_cars()` in file `sliding_windows.py`.
+
+[image3]: ./output_images/all_windows_multiscale.png
 ![alt text][image3]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+In the Section on Histogram of Oriented Gradients (HOG) above, I mentioned that I extracted the HOG- and the color features all on images transformed to the HSV colorspace. This seemed to work well with the test-images at first, however the performance on the project-video was verz unsatisfactory. Hence I decided to try using the `YCrCb` colorspace. 
 
+Here are some example images:
+
+[image4]: ./output_images/hotwindows_cars_heatmap.png
 ![alt text][image4]
+
 ---
 
 ### Video Implementation
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (somewhat wobbly or unstable bounding boxes are ok as long as you are identifying the vehicles most of the time with minimal false positives.)
-Here's a [link to my video result](./project_video.mp4)
+
+Here's a [link to my video result](./out_video.mp4)
 
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
