@@ -90,12 +90,14 @@ Initially I implemented a mechanism where a list of windows (x, y-coordinates) w
 
 To reduce this computationaly complexity, I altered the above mechanism so that the HOG features are extracted only once for a region of interest in an image. Later during window classification, only the portion of the large HOG feature array inside that window is considered. This refined mechanism is implemented in the function `find_cars()` in file `sliding_windows.py`.
 
+The image below shows an example of the sliding windows over which the classifier runs:
+
 [image3]: ./output_images/all_windows_multiscale.png
 ![alt text][image3]
 
-#### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
+#### 2. Show some examples of test images to demonstrate how your pipeline is working. What did you do to optimize the performance of your classifier?
 
-In the Section on Histogram of Oriented Gradients (HOG) above, I mentioned that I extracted the HOG- and the color features all on images transformed to the HSV colorspace. This seemed to work well with the test-images at first, however the performance on the project-video was very unsatisfactory. Hence I decided to try using the `YCrCb` colorspace. 
+The `__name__ == '__main__'` function in `main_vehicle_detection.py` trains the linear SVM classifier and then calls `main_test_images()` which searches for cars in the image using the `find_cars()` function from `sliding_window.py`. The function `main_test_images()` also plots the images at various stages in the pipeline.
 
 Here are some example images:
 
