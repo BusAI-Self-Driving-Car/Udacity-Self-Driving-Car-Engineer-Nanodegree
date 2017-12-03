@@ -45,7 +45,7 @@ Features were extracted from images of vehicle and non-vehicle classes. One exam
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I explored different parameter settings for HOG feature extraction and converged to the parameter set below. This set had the best test-accuracy of 0.98 for a linear SVM clssifier, and seemed to aid car detection best with few false positives. 
+I explored different parameter settings for HOG feature extraction and converged to the parameter set below. This set had the best test-accuracy of 0.98 for a linear SVM classifier, and seemed to aid car detection best with few false positives. 
 
 ``` python
 # HOG feature params
@@ -55,7 +55,6 @@ I explored different parameter settings for HOG feature extraction and converged
 'hog_n_orientations': 9,
 'hog_pixels_per_cell': 8,
 'hog_cells_per_block': 2,
-'hog_subsampling_max': 3
 ```
 
 Here is an example of feature extraction using the above parameter values:
@@ -76,7 +75,7 @@ In addition to the HOG features which capture object shape, I used color feature
 
 I found that using color features in addition to HOG features further improved the test accuracy of the linear SVM classifier while reducing the false positive rate further.
 
-For each training (car / non-car) image, the HOG- and color-features are concatenated to form a one single feature vector. These feature vectors are stacked to form the matrix `X`, and labels car or non-car corresponding to each feature vector  are stored in a vector of `label`s (see function `X, labels = get_training_data()` in `classifiers.py`). 
+For each training (car / non-car) image, the HOG- and color-features are concatenated to form a one single feature vector. These feature vectors are stacked to form the matrix `X`, and labels car ("1") or non-car ("0") corresponding to each feature vector  are stored in a vector of `label`'s (see function `X, labels = get_training_data()` in `classifiers.py`). 
 
 Then, a linear SVM classifier is fitted to the training data in the function `fit_svm(X, labels)` in file `classifiers.py`. Before training the classifier, the columns of the stacked feature vectors are normalized using `sklearn.preprocessing.StandardScaler()` in order to avoid any particular feature dominating the others by sheer scale. 
 
@@ -103,6 +102,9 @@ Here are some example images:
 
 [image4]: ./output_images/hotwindows_cars_heatmap.png
 ![alt text][image4]
+
+[imagePipeline2]: ./output_images/hotwindows_cars_heatmap2.png
+![alt text][imagePipeline2]
 
 ---
 
