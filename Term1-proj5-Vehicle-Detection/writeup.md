@@ -33,7 +33,7 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-HOG feature extraction is implemented in the function `extract_hog_features()` in `feature_extracters.py`). This function transforms the input image to the HSV colorspace and eventually calls `skimage.feature.hog()` to extract the HOG features. 
+HOG feature extraction is implemented in the function `extract_hog_features()` in `feature_extracters.py`). This function transforms the input image to the YCrCb colorspace and eventually calls `skimage.feature.hog()` to extract the HOG features. 
 
 Features were extracted from images of vehicle and non-vehicle classes. One example of each class is shown below.
 
@@ -48,7 +48,7 @@ I explored different parameter settings for HOG feature extraction and converged
 # HOG feature params
 'use_gray_img':False,
 'hog_channel':'ALL',
-'hog_cspace':'HSV',
+'hog_cspace':'YCrCb',
 'hog_n_orientations': 9,
 'hog_pixels_per_cell': 8,
 'hog_cells_per_block': 2,
@@ -65,7 +65,7 @@ Here is an example of feature extraction using the above parameter values:
 In addition to the HOG features which capture object shape, I used color features to capture object appearance. The color features consisted of a downsampled image and histograms of intensity values in the individual channels of the image. I used the following parameter set for extracting these features:
 
 ```python
-'color_cspace':'HSV',
+'color_cspace':'YCrCb',
 'color_spatial_size':(32, 32),
 'color_hist_bins':32,
 'color_hist_range':(0, 256)
@@ -92,7 +92,7 @@ To reduce this computationaly complexity, I altered the above mechanism so that 
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-In the Section on Histogram of Oriented Gradients (HOG) above, I mentioned that I extracted the HOG- and the color features all on images transformed to the HSV colorspace. This seemed to work well with the test-images at first, however the performance on the project-video was verz unsatisfactory. Hence I decided to try using the `YCrCb` colorspace. 
+In the Section on Histogram of Oriented Gradients (HOG) above, I mentioned that I extracted the HOG- and the color features all on images transformed to the HSV colorspace. This seemed to work well with the test-images at first, however the performance on the project-video was very unsatisfactory. Hence I decided to try using the `YCrCb` colorspace. 
 
 Here are some example images:
 
@@ -110,7 +110,11 @@ Here's a [link to my video result](./out_video.mp4)
 
 #### 2. Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.
 
-I recorded the positions of positive detections in each frame of the video.  From the positive detections I created a heatmap and then thresholded that map to identify vehicle positions.  I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I then assumed each blob corresponded to a vehicle.  I constructed bounding boxes to cover the area of each blob detected.  
+The `find_cars()` function in `sliding_windows.py` returns a list of "hot" windows -- windows which are classified as containing a car. By itself, this list contains some misclassified windows, so-called false positives. 
+
+Typically, these are single random instances of misclassification, which we should disappear from one frame to the next, if the feature extraction and image classification performs well. Based on this hypothesis, I accumulated postitive detections over a certain number of consecutive frames into a heatmap. If an area in the image is consistently detected over consecutive frames, it will accumulate a higher heat value. On the other hand, single random instances of misclassified detections will not accumulate as much heat. Thresholding the heatmap should then remove these false positives. 
+
+I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I assumed each blob corresponded to a vehicle and drew tight bounding boxes around the blobs to indicate the vehicle. 
 
 Here's an example result showing the heatmap from a series of frames of video, the result of `scipy.ndimage.measurements.label()` and the bounding boxes then overlaid on the last frame of video:
 
@@ -124,13 +128,20 @@ Here's an example result showing the heatmap from a series of frames of video, t
 ### Here the resulting bounding boxes are drawn onto the last frame in the series:
 ![alt text][image7]
 
-
-
 ---
 
 ### Discussion
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Here I'll talk about the approach I took, what techniques I used, what worked and why, where the pipeline might fail and how I might improve it if I were going to pursue this project further.  
+Feature normalization
+The training images provided were in PNG format. When read using `matplotlib.image.imread()`, their intensity values are in the range [0, 1]. The feature scaler `sklearn.preprocessing.StandardScaler` is fit to this data.
+
+On the other hand, the test-images and the frames from the video have intensity ranges of [0. 255]. Failure to correctly normalize the test-images as `image = image.astype(np.float32)/255` leads to wrong transformation through the `StandardScaler` during feature extraction. This in turn leads to a lot of false positives and is very confounding.
+
+While testing with the test-images, it seemed to me that performance was good for feature extraction in the `HSV` colorspace. So I stuck to it also for video processing, only to find out at a later stage that in fact the `YCrCb` space was much more suitable. This cost me quite some time. 
+
+The current pipeline, although performing quite well, still gives occasional false positives. These are sometimes off-road (e.g. trees, fence) or on the other side of the road. Prior knowledge of where we are on the road and how wide the road is could be used to filter them out.
+
+Also, the parameter space for feature extraction, classification, and sliding-window search is vast. The parameter values I have determined my overfit the project video and not perform quite so well on other data. I would be curious to try a deep-learning approach like LeNet that chooses its own features/parameters and is known to perform well for image classification problems. 
 
