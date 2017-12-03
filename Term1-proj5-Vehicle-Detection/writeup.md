@@ -115,7 +115,7 @@ Here's a [link to my video result](./out_video.mp4)
 
 The `find_cars()` function in `sliding_windows.py` returns a list of "hot" windows -- windows which are classified as containing a car. By itself, this list contains some misclassified windows, so-called false positives. 
 
-Typically, these are single random instances of misclassification, which we should disappear from one frame to the next, if the feature extraction and image classification performs well. Based on this hypothesis, I accumulated postitive detections over a certain number of consecutive frames into a heatmap. If an area in the image is consistently detected over consecutive frames, it will accumulate a higher heat value. On the other hand, single random instances of misclassified detections will not accumulate as much heat. Thresholding the heatmap should then remove these false positives. These ideas are implemented in the functions `get_heat_based_bboxes()`, `add_heat()`, and `apply_heat_threshold()` functions in `sliding_windows.py`.
+Typically, these are single random instances of misclassification, which we should disappear from one frame to the next, if the feature extraction and image classification performs well. Based on this hypothesis, I accumulated postitive detections over a certain number of consecutive frames into a heatmap. If an area in the image is consistently detected over consecutive frames, it will accumulate a higher heat value. On the other hand, single random instances of misclassified detections will not accumulate as much heat. Thresholding the heatmap should then remove these false positives. These ideas are implemented in the `get_heat_based_bboxes()`, `add_heat()`, and `apply_heat_threshold()` functions in `sliding_windows.py`.
 
 I then used `scipy.ndimage.measurements.label()` to identify individual blobs in the heatmap.  I assumed each blob corresponded to a vehicle and drew tight bounding boxes around the blobs to indicate the vehicle. 
 
@@ -125,11 +125,12 @@ I then used `scipy.ndimage.measurements.label()` to identify individual blobs in
 
 #### 1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
-Feature normalization
+**Feature normalization**
 The training images provided were in PNG format. When read using `matplotlib.image.imread()`, their intensity values are in the range [0, 1]. The feature scaler `sklearn.preprocessing.StandardScaler` is fit to this data.
 
 On the other hand, the test-images and the frames from the video have intensity ranges of [0. 255]. Failure to correctly normalize the test-images as `image = image.astype(np.float32)/255` leads to wrong transformation through the `StandardScaler` during feature extraction. This in turn leads to a lot of false positives and is very confounding.
 
+**Colorspace**
 While testing with the test-images, it seemed to me that performance was good for feature extraction in the `HSV` colorspace. So I stuck to it also for video processing, only to find out at a later stage that in fact the `YCrCb` space was much more suitable. This cost me quite some time. 
 
 The current pipeline, although performing quite well, still gives occasional false positives. These are sometimes off-road (e.g. trees, fence) or on the other side of the road. Prior knowledge of where we are on the road and how wide the road is could be used to filter them out.
