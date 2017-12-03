@@ -74,7 +74,11 @@ In addition to the HOG features which capture object shape, I used color feature
 
 I found that using color features in addition to HOG features further improved the test accuracy of the linear SVM classifier while reducing the false positive rate further.
 
-For each training (car / non-car) image, the HOG- and color-features are concatenated to form the final feature vector. This is done in the  `X, labels = get_training_data()` function in `classifiers.py`. Further, a linear SVM classifier is fitted to the training data in the function `fit_svm(X, labels)` in the file `classifiers.py`. 
+For each training (car / non-car) image, the HOG- and color-features are concatenated to form a one single feature vector. These feature vectors are stacked to form the matrix `X`, and labels car or non-car corresponding to each feature vector  are stored in a vector of `label`s (see function `X, labels = get_training_data()` in `classifiers.py`). 
+
+Then, a linear SVM classifier is fitted to the training data in the function `fit_svm(X, labels)` in file `classifiers.py`. Before training the classifier, the columns of the stacked feature vectors are normalized using `sklearn.preprocessing.StandardScaler()` in order to avoid any particular feature dominating the others by sheer scale. 
+
+The training data is split into training (80 %) and test data (20 %) and randomy shuffled. An accuracy score for the classification is calculated on the test data using `svc.score()`.
 
 ### Sliding Window Search
 
