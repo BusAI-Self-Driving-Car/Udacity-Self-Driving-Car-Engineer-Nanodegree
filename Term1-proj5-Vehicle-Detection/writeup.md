@@ -37,8 +37,11 @@ HOG feature extraction is implemented in the function `extract_hog_features()` i
 
 Features were extracted from images of vehicle and non-vehicle classes. One example of each class is shown below.
 
-[image1]: ./examples/car_not_car.png
-![alt text][image1]
+[imageCar]: ./output_images/car.png
+![alt text][imageCar]
+
+[imageNotCar]: ./output_images/non-car.png
+![alt text][imageNotCar]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
@@ -143,5 +146,5 @@ While testing with the test-images, it seemed to me that performance was good fo
 
 The current pipeline, although performing quite well, still gives occasional false positives. These are sometimes off-road (e.g. trees, fence) or on the other side of the road. Prior knowledge of where we are on the road and how wide the road is could be used to filter them out.
 
-Also, the parameter space for feature extraction, classification, and sliding-window search is vast. The parameter values I have determined my overfit the project video and not perform quite so well on other data. I would be curious to try a deep-learning approach like LeNet that chooses its own features/parameters and is known to perform well for image classification problems. 
+Also, the parameter space for feature extraction, classification, and sliding-window search is vast. The parameter values I have determined my overfit the project video and not perform quite so well on other data. I am curious to try a deep-learning approach like LeNet that chooses its own features/parameters and is known to perform well for image classification problems. 
 
