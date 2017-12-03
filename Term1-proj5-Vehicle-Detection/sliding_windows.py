@@ -26,10 +26,15 @@ from feature_extracters import transform_colorspace, extract_features, extract_h
 # Define a single function that can extract features using hog sub-sampling and make predictions
 def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
     
+    hog_feat = dict_config_params['use_hog_feat']
+    spatial_feat = dict_config_params['use_spatial_feat']
+    hist_feat = dict_config_params['use_hist_feat']
+    
     car_windows = []
+    all_windows = []
     
     draw_img = np.copy(img)
-    img = img.astype(np.float32)/255
+    #img = img.astype(np.float32)/255
     
     img_cropped = img[y_start_stop[0]:y_start_stop[1], :, :]
     #img_cropped = transform_colorspace(img_cropped, cspace='YCrCb')
@@ -62,12 +67,15 @@ def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
     nysteps = (nyblocks - nblocks_per_window) // cells_per_step
     
     # Compute individual channel HOG features for the entire image
-    hog1,_ = get_hog_features(ch1, orient, pix_per_cell, cells_per_block, feature_vec=False)
-    hog2,_ = get_hog_features(ch2, orient, pix_per_cell, cells_per_block, feature_vec=False)
-    hog3,_ = get_hog_features(ch3, orient, pix_per_cell, cells_per_block, feature_vec=False)
+    #hog1,_ = get_hog_features(ch1, orient, pix_per_cell, cells_per_block, feature_vec=False)
+    #hog2,_ = get_hog_features(ch2, orient, pix_per_cell, cells_per_block, feature_vec=False)
+    #hog3,_ = get_hog_features(ch3, orient, pix_per_cell, cells_per_block, feature_vec=False)
+    hogg, _ = extract_hog_features(img_cropped, hog_feat=hog_feat, visualize=False)    
     
-    if dict_config_params['use_gray_img'] is True:
-        hogg, hog_image = extract_hog_features(img_cropped, hog_feat=True, visualize=False)    
+    # sprint ("hogg.shape = {}".format(hogg.shape))
+    hog1 = hogg[0]
+    hog2 = hogg[1]
+    hog3 = hogg[2]
     
     count_window = 0
     count_car_window = 0
@@ -94,7 +102,7 @@ def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
             subimg = cv2.resize(img_cropped[ytop:ytop+window, xleft:xleft+window], (64,64))
           
             # Get color features
-            color_features = extract_color_features(subimg, spatial_feat=True, hist_feat=True)
+            color_features = extract_color_features(subimg, spatial_feat=spatial_feat, hist_feat=hist_feat)
             
             # Combine HOG and color features
             img_features = np.hstack((hog_features, color_features))
@@ -104,13 +112,16 @@ def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
             
             #test_features = X_scaler.transform(np.hstack((shape_feat, hist_feat)).reshape(1, -1))    
             test_prediction = svc.predict(test_features)
+                        
+            xbox_left = np.int(xleft * scale)
+            ytop_draw = np.int(ytop * scale)
+            win_draw = np.int(window * scale)
             
-            count_window += 1            
+            count_window += 1
+            all_windows.append(((xbox_left, ytop_draw + y_start_stop[0]),
+                              (xbox_left + win_draw, ytop_draw + win_draw + y_start_stop[0])))
             if test_prediction == 1:
                 count_car_window += 1
-                xbox_left = np.int(xleft * scale)
-                ytop_draw = np.int(ytop * scale)
-                win_draw = np.int(window * scale)
                 
                 car_windows.append(((xbox_left, ytop_draw + y_start_stop[0]),
                               (xbox_left + win_draw, ytop_draw + win_draw + y_start_stop[0])))
@@ -121,7 +132,7 @@ def find_cars(img, y_start_stop, svc, X_scaler, scale=1):
     
     #print("\nfind_cars(): img_features.shape = {}".format(img_features.shape))
     #print("count_window: {}, count_car_window: {}".format(count_window, count_car_window))
-    return draw_img, car_windows
+    return all_windows, car_windows
 
 
 # In[ ]:
@@ -235,7 +246,9 @@ def draw_boxes(img, bboxes, color=(0, 0, 255), thick=6):
     
     for bbox in bboxes:
         # Draw a rectangle
-        cv2.rectangle(imcopy, bbox[0], bbox[1], color, thick)
+        #cv2.rectangle(imcopy, bbox[0], bbox[1], color, thick)
+        cv2.rectangle(imcopy, (bbox[0][0], bbox[0][1]), (bbox[1][0], bbox[1][1]), 
+                      color, thick)
 
     return imcopy
 
@@ -252,8 +265,41 @@ def add_heat(heatmap, bbox_list):
     return heatmap
     
 def apply_heat_threshold(heatmap, threshold):
-    heatmap[heatmap <= threshold] = 0
+    heatmap[heatmap < threshold] = 0
     return heatmap
+
+
+# In[ ]:
+
+
+from scipy.ndimage.measurements import label
+
+def get_heat_based_bboxes(img, hot_windows, verbose=False):
+    
+    heat = np.zeros_like(img[:,:,0]).astype(np.float)
+    
+    # Add heat to each box in box list
+    heat = add_heat(heat, hot_windows)
+
+    # Apply threshold to help remove false positives
+    heat = apply_heat_threshold(heat, dict_config_params['heat_threshold'])
+
+    # Visualize the heatmap when displaying    
+    heatmap = np.clip(heat, 0, 255)
+
+    # Find final boxes from heatmap using label function
+    labels = label(heatmap)
+    
+    if verbose is True:
+        print("sliding_windows::get_heat_based_bboxes(): no.of labels: {}".format(1+labels[1]))
+    
+    draw_img = draw_labeled_bboxes(np.copy(img), labels)
+    
+    return draw_img, heatmap
+
+
+# In[ ]:
+
 
 def draw_labeled_bboxes(img, labels):
     
@@ -274,29 +320,4 @@ def draw_labeled_bboxes(img, labels):
         cv2.rectangle(img, bbox[0], bbox[1], (0,0,255), 6)
 
     return img
-
-
-# In[ ]:
-
-
-from scipy.ndimage.measurements import label
-
-def get_heat_based_bboxes(img, hot_windows):
-    
-    heat = np.zeros_like(img[:,:,0]).astype(np.float)
-    
-    # Add heat to each box in box list
-    heat = add_heat(heat, hot_windows)
-
-    # Apply threshold to help remove false positives
-    heat = apply_heat_threshold(heat, 4)
-
-    # Visualize the heatmap when displaying    
-    heatmap = np.clip(heat, 0, 255)
-
-    # Find final boxes from heatmap using label function
-    labels = label(heatmap)
-    draw_img = draw_labeled_bboxes(np.copy(img), labels)
-    
-    return draw_img, heatmap
 

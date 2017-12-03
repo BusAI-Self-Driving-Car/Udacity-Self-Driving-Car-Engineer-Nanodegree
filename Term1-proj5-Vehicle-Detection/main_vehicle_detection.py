@@ -1,10 +1,10 @@
 
 # coding: utf-8
 
-# In[56]:
+# In[1]:
 
 
-# In[57]:
+# In[2]:
 
 
 import os, glob
@@ -20,57 +20,7 @@ from sliding_windows import add_heat, apply_heat_threshold, draw_labeled_bboxes,
 from classifiers import get_training_data, fit_svm
 
 
-# In[58]:
-
-
-def main_test_images():    
-    
-    # Test images    
-    count_fig = 1
-    filenames_img = glob.glob('./test_images/test*.jpg')
-    for filename_img in filenames_img:
-        
-        # Read image
-        image = mpimg.imread(filename_img)
-        draw_image = np.copy(image)
-        
-        # Normalize image intensity, since we read in a jpg
-        image = image.astype(np.float32)/255
-        
-        y_start_stop = [np.int(image.shape[0]/2), image.shape[0] - 60]        
-        hot_windows = []
-        if True:
-            for scale in np.arange(1, dict_config_params['hog_subsampling_max'], 0.5):
-                window_img, windows = find_cars(image, y_start_stop, svc, X_scaler, scale=scale)
-                hot_windows += windows     
-            
-        else:            
-            # No HOG subsampling (HOG features extracted on every search window separately)
-            windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, 
-                            xy_window=(96, 96), xy_overlap=(0.5, 0.5))
-
-            hot_windows = search_windows(image, windows, svc, X_scaler)                                   
-
-        window_img = draw_boxes(image, hot_windows, color=(0, 0, 255), thick=6)
-        draw_img, heatmap = get_heat_based_bboxes(image, hot_windows, verbose=True)
-            
-        fig = plt.figure(count_fig, figsize=(8, 6), dpi=100)
-        plt.subplot(131)
-        plt.imshow(window_img)
-        plt.title('Hot windows')       
-        plt.subplot(132)
-        plt.imshow(draw_img)
-        plt.title('Car Positions')
-        plt.subplot(133)
-        plt.imshow(heatmap, cmap='hot')
-        plt.title('Heat Map')
-        fig.tight_layout()
-        count_fig += 1
-    
-    plt.show()
-
-
-# In[59]:
+# In[3]:
 
 
 from moviepy.editor import VideoFileClip
@@ -91,20 +41,24 @@ def process_video_frame(frame):
     hot_windows = []    
     
     # Search for cars directly with HOG subsampling
-    for scale in np.arange(1, dict_config_params['hog_subsampling_max'], 0.5):
-        window_img, windows = find_cars(frame, y_start_stop, svc, X_scaler, scale=scale)
+    for scale in np.arange(1, dict_config_params['hog_subsampling_max'], 
+                           dict_config_params['hog_subsampling_step']):
+        _, windows = find_cars(frame, y_start_stop, svc, X_scaler, scale=scale)
         hot_windows += windows
     
-    if False and hot_windows:
+    if hot_windows:
         buffer_hot_windows.append(hot_windows)
         hot_windows = np.concatenate(buffer_hot_windows)
         
+    print("\n# hot-windows: {}".format(len(hot_windows)))
     window_img = draw_boxes(draw_frame, hot_windows, color=(0, 0, 255), thick=6)
-    draw_frame, heatmap = get_heat_based_bboxes(draw_frame, hot_windows, verbose=False)
+    draw_frame, heatmap = get_heat_based_bboxes(draw_frame, hot_windows, verbose=True)
     
     # Thumbnail -- Heatmap
-    heatmap = 255*heatmap/np.max(heatmap)
+    #heatmap = 255*heatmap/np.max(heatmap)
+    print("heatmap: {} to {}".format(np.min(heatmap), np.max(heatmap)))
     heatmap = cv2.applyColorMap(np.uint8(heatmap), colormap=cv2.COLORMAP_HOT)    
+    print("heatmap2: {} to {}".format(np.min(heatmap), np.max(heatmap)))
     img_width = heatmap.shape[1]
     img_height = heatmap.shape[0]
     scale = 1/4.
@@ -134,7 +88,65 @@ def main_video(video_sec):
     
 
 
-# In[60]:
+# In[4]:
+
+
+def main_test_images():    
+    
+    # Test images    
+    count_fig = 1
+    filenames_img = glob.glob('./test_images/test*.jpg')
+    for filename_img in filenames_img:
+        
+        # Read image
+        image = mpimg.imread(filename_img)
+        draw_image = np.copy(image)
+        
+        # Normalize image intensity, since we read in a jpg
+        image = image.astype(np.float32)/255
+        
+        y_start_stop = [np.int(image.shape[0]/2), image.shape[0] - 60]        
+        hot_windows = []
+        all_windows = []
+        if True:
+            for scale in np.arange(1, dict_config_params['hog_subsampling_max'], 
+                                   dict_config_params['hog_subsampling_step']):
+                windows, car_windows = find_cars(image, y_start_stop, 
+                                                     svc, X_scaler, 
+                                                     scale=scale)
+                hot_windows += car_windows
+                all_windows += windows
+            
+        else:            
+            # No HOG subsampling (HOG features extracted on every search window separately)
+            windows = slide_window(image, x_start_stop=[None, None], y_start_stop=y_start_stop, 
+                            xy_window=(96, 96), xy_overlap=(0.5, 0.5))
+
+            hot_windows = search_windows(image, windows, svc, X_scaler)                                   
+
+        print("\n# hot-windows: {}".format(len(hot_windows)))
+        window_img = draw_boxes(draw_image, hot_windows, color=(0, 0, 255), thick=6)
+        draw_img, heatmap = get_heat_based_bboxes(draw_image, hot_windows, verbose=True)
+            
+        print("heatmap: {} to {}".format(np.min(heatmap), np.max(heatmap)))
+        
+        fig = plt.figure(count_fig, figsize=(8, 6), dpi=100)
+        plt.subplot(131)
+        plt.imshow(window_img)
+        plt.title('Hot windows')       
+        plt.subplot(132)
+        plt.imshow(draw_img)
+        plt.title('Car Positions')
+        plt.subplot(133)
+        plt.imshow(heatmap, cmap='hot')
+        plt.title('Heat Map')
+        fig.tight_layout()
+        count_fig += 1
+    
+    plt.show()
+
+
+# In[5]:
 
 
 import collections
@@ -145,7 +157,7 @@ svc, X_scaler = None, None
 buffer_hot_windows = collections.deque(maxlen=dict_config_params['buffer_len_hotwindows'])
 
 if __name__ == '__main__':
-      
+    
     parser = argparse.ArgumentParser()
     parser.add_argument("video_sec", help="No.of sec. of video to be processed.", type=int)
     args = parser.parse_args()
@@ -169,7 +181,7 @@ if __name__ == '__main__':
     main_video(args.video_sec)   # args.video_sec
 
 
-# In[61]:
+# In[6]:
 
 
 ### BKP
