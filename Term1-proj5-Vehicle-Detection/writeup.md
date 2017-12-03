@@ -13,8 +13,7 @@ The goals / steps of this project are the following:
 
 [//]: # (Image References)
 
-[image3]: ./examples/sliding_windows.jpg
-[image4]: ./examples/sliding_window.jpg
+
 [image5]: ./examples/bboxes_and_heat.png
 [image6]: ./examples/labels_map.png
 [image7]: ./examples/output_bboxes.png
@@ -84,14 +83,22 @@ The training data is split into training (80 %) and test data (20 %) and randomy
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
+Initially I implemented a mechanism where a list of windows (x, y-coordinates) was generated for a region of interest in an image, given window size and overlap (`slide_window()` function in `sliding_windows.py`).  This windows list was then filtered for windows containing cars using the function `search_windows()` in `sliding_windows.py`. The `search_windows()` function extracted HOG and color features for each window and classified the window as either containing a car or not. This process was computationally very expensive, since the HOG features were extracted separately for each window. 
 
+To reduce this computationaly complexity, I altered the above mechanism so that the HOG features are extracted only once for a region of interest in an image. Later during window classification, only the portion of the large HOG feature array inside that window is considered. This refined mechanism is implemented in the function `find_cars()` in file `sliding_windows.py`.
+
+[image3]: ./output_images/all_windows_multiscale.png
 ![alt text][image3]
 
 #### 2. Show some examples of test images to demonstrate how your pipeline is working.  What did you do to optimize the performance of your classifier?
 
-Ultimately I searched on two scales using YCrCb 3-channel HOG features plus spatially binned color and histograms of color in the feature vector, which provided a nice result.  Here are some example images:
+In the Section on Histogram of Oriented Gradients (HOG) above, I mentioned that I extracted the HOG- and the color features all on images transformed to the HSV colorspace. This seemed to work well with the test-images at first, however the performance on the project-video was verz unsatisfactory. Hence I decided to try using the `YCrCb` colorspace. 
 
+Here are some example images:
+
+[image4]: ./output_images/hotwindows_cars_heatmap.png
 ![alt text][image4]
+
 ---
 
 ### Video Implementation
