@@ -133,7 +133,9 @@ On the other hand, the test-images and the frames from the video have intensity 
 **Colorspace**
 While testing with the test-images, it seemed to me that performance was good for feature extraction in the `HSV` colorspace. So I stuck to it also for video processing, only to find out at a later stage that in fact the `YCrCb` space was much more suitable. This cost me quite some time. 
 
+**False positives**
 The current pipeline, although performing quite well, still gives occasional false positives. These are sometimes off-road (e.g. trees, fence) or on the other side of the road. Prior knowledge of where we are on the road and how wide the road is could be used to filter them out.
 
+**A deep-learning approach?**
 Also, the parameter space for feature extraction, classification, and sliding-window search is vast. The parameter values I have determined my overfit the project video and not perform quite so well on other data. I am curious to try a deep-learning approach like LeNet that chooses its own features/parameters and is known to perform well for image classification problems. 
 
