@@ -1,19 +1,18 @@
-## Writeup Template
+## Writeup
 
 **Vehicle Detection Project**
 
 The goals / steps of this project are the following:
 
 * Perform a Histogram of Oriented Gradients (HOG) feature extraction on a labeled training set of images and train a classifier Linear SVM classifier
-* Optionally, you can also apply a color transform and append binned color features, as well as histograms of color, to your HOG feature vector. 
-* Note: for those first two steps don't forget to normalize your features and randomize a selection for training and testing.
-* Implement a sliding-window technique and use your trained classifier to search for vehicles in images.
-* Run your pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
+* Optionally apply a color transform and append binned color features, as well as histograms of color, to the HOG feature vector. 
+* Note: for those first two steps don't forget to normalize the features and randomize a selection for training and testing.
+* Implement a sliding-window technique and use the trained classifier to search for vehicles in images.
+* Run the pipeline on a video stream (start with the test_video.mp4 and later implement on full project_video.mp4) and create a heat map of recurring detections frame by frame to reject outliers and follow detected vehicles.
 * Estimate a bounding box for vehicles detected.
 
 [//]: # (Image References)
-[image1]: ./examples/car_not_car.png
-[image2]: ./examples/HOG_example.jpg
+
 [image3]: ./examples/sliding_windows.jpg
 [image4]: ./examples/sliding_window.jpg
 [image5]: ./examples/bboxes_and_heat.png
@@ -22,12 +21,12 @@ The goals / steps of this project are the following:
 [video1]: ./project_video.mp4
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
-### Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
+Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
 ---
 ### Writeup / README
 
-#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Vehicle-Detection/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
+#### 1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.
 
 You're reading it!
 
@@ -35,32 +34,52 @@ You're reading it!
 
 #### 1. Explain how (and identify where in your code) you extracted HOG features from the training images.
 
-The code for this step is contained in the first code cell of the IPython notebook (or in lines # through # of the file called `some_file.py`).  
+HOG feature extraction is implemented in the function `extract_hog_features()` in `feature_extracters.py`). This function transforms the input image to the HSV colorspace and eventually calls `skimage.feature.hog()` to extract the HOG features. 
 
-I started by reading in all the `vehicle` and `non-vehicle` images.  Here is an example of one of each of the `vehicle` and `non-vehicle` classes:
+Features were extracted from images of vehicle and non-vehicle classes. One example of each class is shown below.
 
+[image1]: ./examples/car_not_car.png
 ![alt text][image1]
-
-I then explored different color spaces and different `skimage.hog()` parameters (`orientations`, `pixels_per_cell`, and `cells_per_block`).  I grabbed random images from each of the two classes and displayed them to get a feel for what the `skimage.hog()` output looks like.
-
-Here is an example using the `YCrCb` color space and HOG parameters of `orientations=8`, `pixels_per_cell=(8, 8)` and `cells_per_block=(2, 2)`:
-
-
-![alt text][image2]
 
 #### 2. Explain how you settled on your final choice of HOG parameters.
 
-I tried various combinations of parameters and...
+I explored different parameter settings for HOG feature extraction and converged to the parameter set below. This set had the best test-accuracy of 0.98 for a linear SVM clssifier, and seemed to aid car detection best with few false positives. 
+
+``` python
+# HOG feature params
+'use_gray_img':False,
+'hog_channel':'ALL',
+'hog_cspace':'HSV',
+'hog_n_orientations': 9,
+'hog_pixels_per_cell': 8,
+'hog_cells_per_block': 2,
+'hog_subsampling_max': 3
+```
+
+Here is an example of feature extraction using the above parameter values:
+
+[image2]: ./output_images/HOG_example.png
+![alt text][image2]
 
 #### 3. Describe how (and identify where in your code) you trained a classifier using your selected HOG features (and color features if you used them).
 
-I trained a linear SVM using...
+In addition to the HOG features which capture object shape, I used color features to capture object appearance. The color features consisted of a downsampled image and histograms of intensity values in the individual channels of the image. I used the following parameter set for extracting these features:
+
+```python
+'color_cspace':'HSV',
+'color_spatial_size':(32, 32),
+'color_hist_bins':32,
+'color_hist_range':(0, 256)
+```
+
+I found that using color features in addition to HOG features further improved the test accuracy of the linear SVM classifier while reducing the false positive rate further.
+
+For each training (car / non-car) image, the HOG- and color-features are concatenated to form the final feature vector. This is done in the  `X, labels = get_training_data()` function in `classifiers.py`. Further, a linear SVM classifier is fitted to the training data in the function `fit_svm(X, labels)` in the file `classifiers.py`. 
 
 ### Sliding Window Search
 
 #### 1. Describe how (and identify where in your code) you implemented a sliding window search.  How did you decide what scales to search and how much to overlap windows?
 
-I decided to search random window positions at random scales all over the image and came up with this (ok just kidding I didn't actually ;):
 
 ![alt text][image3]
 
