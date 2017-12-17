@@ -30,6 +30,10 @@ The goals / steps of this project are the following:
 [imageSteeringAngleHistBiasedTo0]: ./examples/histogram_biased_to_0.png "Steering angle distribution biased towards 0.0 deg."
 [imageSteeringAngleHistEqualized]: ./examples/histogram_equalized.png "Steering angle distribution equalized"
 
+<p align="center">
+ <a href=""><img src="./videos/track2.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
 ## Rubric Points
 
 Here I will consider the [rubric points](https://review.udacity.com/#!/rubrics/432/view) individually and describe how I addressed each point in my implementation.  

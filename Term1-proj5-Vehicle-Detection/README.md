@@ -19,6 +19,10 @@ The goals / steps of this project are the following:
 [image7]: ./examples/output_bboxes.png
 [video1]: ./project_video.mp4
 
+<p align="center">
+ <a href=""><img src="./videos/out_video.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
 ## [Rubric](https://review.udacity.com/#!/rubrics/513/view) Points
 Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
