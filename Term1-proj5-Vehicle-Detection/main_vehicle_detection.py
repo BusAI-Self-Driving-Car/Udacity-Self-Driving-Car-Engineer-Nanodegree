@@ -180,7 +180,7 @@ if __name__ == '__main__':
         pickle.dump([svc, X_scaler], open( filename_classifier, "wb" ) )
 
     #main_test_images()
-    main_video(args.video_sec)   # args.video_sec
+    main_video(50)   # args.video_sec
 
 
 # In[6]:
