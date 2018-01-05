@@ -4,8 +4,8 @@ rm -r build
 mkdir build
 cd build
 
-export PATH=/home.net/rh17dur/Documents/udas/software/cmake-3.6.0-Linux-x86_64/bin:$PATH
-export PATH=/home.net/rh17dur/Documents/udas/software/make-4.2:$PATH
+export PATH=~/Documents/udas/software/cmake-3.6.0-Linux-x86_64/bin:$PATH
+export PATH=~/Documents/udas/software/make-4.2:$PATH
 
 # Symlink to a newer GCC (required by this project)
 sudo rm -f /usr/bin/gcc; sudo ln -s /usr/bin/gcc-6 /usr/bin/gcc
