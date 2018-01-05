@@ -1,3 +1,10 @@
+# qtcreator project-files
+*.config
+*.creator
+*.creator.user
+*.files
+*.includes
+
 # acrtifacts of tensorflow runs
 checkpoint
 
