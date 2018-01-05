@@ -17,6 +17,11 @@ The goals / steps of this project are the following:
 
 ---
 
+
+<p align="center">
+ <a href=""><img src="./test_videos_output/solidYellowLeft.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
 ### Reflection
 
 ### 1. Describe your pipeline. As part of the description, explain how you modified the draw_lines() function.
