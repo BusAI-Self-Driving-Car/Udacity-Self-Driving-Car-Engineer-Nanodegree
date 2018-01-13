@@ -104,8 +104,24 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
      * Update the process noise covariance matrix.
      * Use noise_ax = 9 and noise_ay = 9 for your Q matrix.
    */
+    long long dt = measurement_pack.timestamp_ - previous_timestamp_;
+    ekf_.F_ << 1, 0, dt, 0,
+               0, 1, 0, dt,
+               0, 0, 1, 0,
+               0, 0, 0, 1;
 
-  ekf_.Predict();
+    // Compute process noise covariance matrix
+    float dt_2 = dt * dt;
+    float dt_3 = dt_2 * dt;
+    float dt_4 = dt_3 * dt;
+    float noise_ax = 9;
+    float noise_ay = 9;
+    ekf_.Q_	<<	dt_4/4 * noise_ax,	0,	dt_3 / 2 * noise_ax, 0,
+                0,dt_4 / 4 * noise_ay,	0, dt_3 / 2 * noise_ay,
+                dt_3/2 * noise_ax,	0,	dt_2 * noise_ax, 0,
+                0, dt_3 / 2 * noise_ay, 0, dt_2 * noise_ay;
+
+    ekf_.Predict();
 
   /*****************************************************************************
    *  Update
@@ -119,9 +135,17 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
 
   if (measurement_pack.sensor_type_ == MeasurementPackage::RADAR) {
     // Radar updates
+    ekf_.H_ = tools.CalculateJacobian(ekf_.x_);
+    ekf_.R_ = R_radar_;
+    ekf_.UpdateRadar(measurement_pack.raw_measurements_);
   } else {
     // Laser updates
+    ekf_.H_ = H_laser_;
+    ekf_.R_ = R_laser_;
+    ekf_.UpdateLidar(measurement_pack.raw_measurements_);
   }
+
+  previous_timestamp_ = measurement_pack.timestamp_;
 
   // print the output
   cout << "x_ = " << ekf_.x_ << endl;
