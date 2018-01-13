@@ -7,6 +7,7 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using namespace std;
 
+// TODO: No class required, turn member functions to free functions.
 class Tools {
 public:
   /**
