@@ -60,12 +60,12 @@ void KalmanFilter::UpdateRadar(const VectorXd &z) {
   TODO:
     * update the state by using Extended Kalman Filter equations
   */
-    VectorXd y(3), z_predicted;
+    VectorXd y(3), z_predicted(3);
 
     float px = x_(0), py = x_(1), vx = x_(2), vy = x_(3);
     z_predicted(0) = sqrt(px*px + py*py); // rho
     z_predicted(1) = atan2(py, px); // phi
-    z_predicted(2) = (px * vx + py * vy) / std::max(0.00001, y(0)); // rho-dot, avoid division by zero
+    z_predicted(2) = (px * vx + py * vy) / std::max(0.00001, z_predicted(0)); // rho-dot, avoid division by zero
 
     y = z - z_predicted;
 
