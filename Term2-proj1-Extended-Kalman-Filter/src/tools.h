@@ -18,7 +18,7 @@ public:
   /**
   * Destructor.
   */
-  virtual ~Tools();
+  ~Tools();
 
   /**
   * A helper method to calculate RMSE.

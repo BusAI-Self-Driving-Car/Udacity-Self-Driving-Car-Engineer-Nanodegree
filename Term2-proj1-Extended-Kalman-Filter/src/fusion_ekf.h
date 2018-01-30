@@ -19,7 +19,7 @@ public:
   /**
   * Destructor.
   */
-  virtual ~FusionEKF();
+  ~FusionEKF();
 
   /**
   * Run the whole flow of the Kalman Filter from here.

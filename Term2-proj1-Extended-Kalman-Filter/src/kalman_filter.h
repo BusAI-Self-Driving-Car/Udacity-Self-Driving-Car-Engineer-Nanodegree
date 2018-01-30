@@ -31,7 +31,7 @@ public:
   /**
    * Destructor
    */
-  virtual ~KalmanFilter();
+  ~KalmanFilter();
 
   /**
    * Init Initializes Kalman filter
