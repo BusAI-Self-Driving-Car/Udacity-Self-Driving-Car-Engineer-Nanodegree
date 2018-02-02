@@ -98,14 +98,15 @@ public:
 
   /**
    * ProcessMeasurement
-   * @param meas_package The latest measurement data of either radar or laser
+   * @param {MeasurementPackage} meas_package The latest measurement data of either radar or laser
    */
   void ProcessMeasurement(MeasurementPackage meas_package);
 
   /**
    * Prediction Predicts sigma points, the state, and the state covariance
    * matrix
-   * @param delta_t Time between k and k+1 in s
+   * @param {double} delta_t the change in time (in seconds) between the last
+ * measurement and this one.
    */
   void PredictState(double delta_t);
 
@@ -116,7 +117,7 @@ public:
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
-   * @param meas_package The measurement at k+1
+   * @param {MeasurementPackage} meas_package The measurement at k+1
    */
   void UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package);
 
@@ -127,7 +128,7 @@ public:
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
-   * @param meas_package The measurement at k+1
+   * @param {MeasurementPackage} meas_package The measurement at k+1
    */
   void UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package);
 };

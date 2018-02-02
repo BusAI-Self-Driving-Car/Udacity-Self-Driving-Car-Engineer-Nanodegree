@@ -7,10 +7,6 @@ using Eigen::MatrixXd;
 using Eigen::VectorXd;
 using std::vector;
 
-/**
- * Initializes Unscented Kalman filter
- * This is scaffolding, do not modify
- */
 UKF::UKF() {
   // if this is false, laser measurements will be ignored (except during init)
   use_laser_ = true;
@@ -85,10 +81,6 @@ UKF::UKF() {
 
 UKF::~UKF() {}
 
-/**
- * @param {MeasurementPackage} meas_package The latest measurement data of
- * either radar or laser.
- */
 void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   /**
   TODO: ProcessMeasurement
@@ -231,7 +223,7 @@ void UKF::CalcPredictedStateAndCovariance() {
         x_ += weights_(i) * Xsig_pred_.col(i);
     }
 
-    VectorXd diff;    
+    VectorXd diff;
     P_.fill(0.0);
     for (size_t i = 1; i < Xsig_pred_.cols(); ++i)
     {
@@ -246,11 +238,6 @@ void UKF::CalcPredictedStateAndCovariance() {
     }
 }
 
-/**
- * Predicts sigma points, the state, and the state covariance matrix.
- * @param {double} delta_t the change in time (in seconds) between the last
- * measurement and this one.
- */
 void UKF::PredictState(double delta_t) {
   /**
   TODO: Prediction
@@ -271,10 +258,6 @@ void UKF::PredictLidarMeasurement() {
   // Zsig_pred_lidar_ --> z_pred_lidar_, S_pred_lidar_
 }
 
-/**
- * Updates the state and the state covariance matrix using a laser measurement.
- * @param {MeasurementPackage} meas_package
- */
 void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package) {
   /**
   TODO: UpdateLidar
@@ -352,10 +335,6 @@ void UKF::PredictRadarMeasurement() {
   S_pred_radar_(2, 2) += std_radrd_*std_radrd_;
 }
 
-/**
- * Updates the state and the state covariance matrix using a radar measurement.
- * @param {MeasurementPackage} meas_package
- */
 void UKF::UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package) {
   /**
   TODO: UpdateRadar
