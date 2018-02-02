@@ -28,6 +28,8 @@ std::string hasData(std::string s) {
 
 int main()
 {
+  using namespace sdcnd;
+
   uWS::Hub h;
 
   // Create a Kalman Filter instance

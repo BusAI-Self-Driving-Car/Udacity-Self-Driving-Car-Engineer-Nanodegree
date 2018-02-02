@@ -10,6 +10,8 @@
 using Eigen::MatrixXd;
 using Eigen::VectorXd;
 
+namespace sdcnd {
+
 class UKF {
 public:
 
@@ -132,5 +134,7 @@ public:
    */
   void UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package);
 };
+
+} // namespace sdcnd
 
 #endif /* UKF_H */

@@ -5,6 +5,7 @@
 #include "Eigen/Dense"
 
 using namespace std;
+using namespace sdcnd;
 
 constexpr float threshold_matrix_diff = 1e-4;
 
