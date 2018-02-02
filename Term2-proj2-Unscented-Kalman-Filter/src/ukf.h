@@ -28,8 +28,19 @@ public:
   ///* state covariance matrix
   MatrixXd P_;
 
+  ///* Augmented sigma points matrix
+  MatrixXd Xsig_aug_;
+
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
+
+  VectorXd z_pred_lidar_;
+  MatrixXd S_pred_lidar_;
+  MatrixXd Zsig_pred_lidar_;
+
+  VectorXd z_pred_radar_;
+  MatrixXd S_pred_radar_;
+  MatrixXd Zsig_pred_radar_;
 
   ///* time when the state is true, in us
   long long time_us_;
@@ -61,6 +72,9 @@ public:
   ///* State dimension
   int n_x_;
 
+  int n_z_lidar_;
+  int n_z_radar_;
+
   ///* Augmented state dimension
   int n_aug_;
 
@@ -78,6 +92,10 @@ public:
    */
   virtual ~UKF();
 
+  void CalcAugmentedSigmaPoints();
+  void PredictStateSigmaPoints(double delta_t);
+  void CalcPredictedStateAndCovariance();
+
   /**
    * ProcessMeasurement
    * @param meas_package The latest measurement data of either radar or laser
@@ -89,19 +107,29 @@ public:
    * matrix
    * @param delta_t Time between k and k+1 in s
    */
-  void Prediction(double delta_t);
+  void PredictState(double delta_t);
+
+  /**
+   * Predicts the Lidar measurement mean and covariance matrix
+   */
+  void PredictLidarMeasurement();
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateLidar(MeasurementPackage meas_package);
+  void UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package);
+
+  /**
+   * Predicts the Radar measurement mean and covariance matrix
+   */
+  void PredictRadarMeasurement();
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
-  void UpdateRadar(MeasurementPackage meas_package);
+  void UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package);
 };
 
 #endif /* UKF_H */
