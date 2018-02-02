@@ -215,7 +215,7 @@ void UKF::PredictStateSigmaPoints(double delta_t) {
 void UKF::CalcPredictedStateAndCovariance() {
 
     x_.fill(0.0);
-    std::cout << "Xsig_pred_.cols(): " << Xsig_pred_.cols() << std::endl;
+    //std::cout << "Xsig_pred_.cols(): " << Xsig_pred_.cols() << std::endl;
     for (size_t i = 0; i < Xsig_pred_.cols(); ++i)
     {
         // Predict state
@@ -335,6 +335,13 @@ void UKF::PredictRadarMeasurement() {
   S_pred_radar_(2, 2) += std_radrd_*std_radrd_;
 }
 
+double normalizeAngle(double angle) {
+    while (angle >  M_PI) angle -= 2.*M_PI;
+    while (angle < -M_PI) angle += 2.*M_PI;
+
+    return angle;
+}
+
 void UKF::UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package) {
   /**
   TODO: UpdateRadar
@@ -345,15 +352,39 @@ void UKF::UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package)
   You'll also need to calculate the radar NIS.
   */
 
-  // Cross-correlation between sigma points from state-space and measurement-space
-  // Zsig_pred_radar_, Xsig_pred_, z_pred_radar, x_ --> T_cross_corr_state_msmt_
+  VectorXd z_radar(n_z_radar_);
+  z_radar = meas_package.raw_measurements_;
+
+  //Cross-correlation between sigma points from state-space and measurement-space
+  // Zsig_pred_radar_[3x15], Xsig_pred_[5x15], z_pred_radar_[2x1], x_[5x1] --> T_cross_corr_state_msmt_[5x3]
+  MatrixXd T_cross_corr_state_msmt(n_x_, n_z_radar_);
+
+  T_cross_corr_state_msmt.fill(0.0);
+  VectorXd diff_x, diff_z;
+  for(size_t i = 0; i < Zsig_pred_radar_.cols(); ++i) {
+
+    diff_x = (Xsig_pred_.col(i) - x_);
+    diff_x(3) = normalizeAngle(diff_x(3));
+
+    diff_z = (Zsig_pred_radar_.col(i) - z_pred_radar_);
+    diff_z(1) = normalizeAngle(diff_z(1));
+
+    T_cross_corr_state_msmt += weights_(i) * diff_x * diff_z.transpose();
+  }
 
   // Kalman gain
-  // T_cross_corr_state_msmt_, S_pred_radar_ --> K_
+  // T_cross_corr_state_msmt_, S_pred_radar_ --> K
+  MatrixXd K(n_x_, n_z_radar_);
+  K = T_cross_corr_state_msmt * S_pred_radar_.inverse();
 
   // State update
   // x_, K_, z_radar_, z_pred_radar_  --> x_
+  diff_z = (z_radar - z_pred_radar_);
+  diff_z(1) = normalizeAngle(diff_z(1));
+
+  x_ = x_ + K * diff_z;
 
   // Covariance update
   // P_, K_, S_pred_radar_ --> P_
+  P_ = P_ - K * S_pred_radar_ * K.transpose();
 }
