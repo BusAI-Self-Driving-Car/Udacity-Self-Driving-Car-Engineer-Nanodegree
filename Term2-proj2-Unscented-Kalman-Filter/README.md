@@ -1,3 +1,71 @@
+# My notes
+
+Debugging steps:
+
+---
+=======
+Problem
+=======
+Even with both of the sensors turned off, the state covariance exploded.
+
+=========
+Diagnosis
+=========
+The explosion was taking place in UKF::PredictStateSigmaPoints() where the state sigma-points are passed through the process function. There are delta_t^2 terms in here, which explode with increasing delta_t.
+
+========
+Solution
+========
+The previous timestamp was not getting set properly, so that delta_t was always w.r.t. the first timestamp, instead of w.r.t. to the previous timestamp.
+
+---
+=======
+Problem
+=======
+With both sensors turned off (only process model runs), why does only the varaince for px explode and not py?
+P_ =
+688.217   0.000  28.841   0.000   0.000
+  0.000   1.000   0.000   0.000   0.000
+ 28.841   0.000   1.312   0.000   0.000
+  0.000   0.000   0.000   1.845  -0.132
+  0.000   0.000   0.000  -0.132   1.449
+
+=========
+Diagnosis
+=========
+
+
+========
+Solution
+========
+---
+
+---
+=======
+Problem
+=======
+With only lidar turned ON, state x_ explodes, whereas state covariance P_ quickly goes to 0.
+Possibly related: NIS for lidar also has extremely large values -- oder of 1E6.
+
+Why?
+P_ =
+ 0.000  0.000  0.000 -0.000 -0.000
+ 0.000 -0.000  0.000  0.000  0.000
+ 0.000  0.000  0.001 -0.000 -0.000
+-0.000  0.000 -0.000  0.000  0.000
+-0.000  0.000 -0.000  0.000  0.001
+
+=========
+Diagnosis
+=========
+The predicted measurement covariance for S_pred_lidar_ quickly goes to 0 matrix.
+
+========
+Solution
+========
+Add the previously forgotten lidar sensor-noise covariance to S_pred_lidar_.
+---
+
 # Unscented Kalman Filter Project Starter Code
 Self-Driving Car Engineer Nanodegree Program
 
