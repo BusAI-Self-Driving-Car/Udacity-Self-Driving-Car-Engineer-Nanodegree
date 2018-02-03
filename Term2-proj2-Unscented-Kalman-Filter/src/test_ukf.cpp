@@ -7,7 +7,7 @@
 using namespace std;
 using namespace sdcnd;
 
-constexpr float threshold_matrix_diff = 1e-3;
+constexpr float threshold_matrix_diff = 1e-4;
 
 double getMatrixDiffScalar(bool verbose, const MatrixXd& a, const MatrixXd& b)
 {
