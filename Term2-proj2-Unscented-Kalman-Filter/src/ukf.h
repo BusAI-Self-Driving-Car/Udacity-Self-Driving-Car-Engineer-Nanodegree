@@ -39,10 +39,12 @@ public:
   VectorXd z_pred_lidar_;
   MatrixXd S_pred_lidar_;
   MatrixXd Zsig_pred_lidar_;
+  double NIS_lidar_;
 
   VectorXd z_pred_radar_;
   MatrixXd S_pred_radar_;
   MatrixXd Zsig_pred_radar_;
+  double NIS_radar_;
 
   ///* time when the state is true, in us
   long long time_us_;

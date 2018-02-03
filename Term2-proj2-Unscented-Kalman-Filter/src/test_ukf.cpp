@@ -248,6 +248,18 @@ TEST(ukfTest, test_UpdateStateAndCovarianceFromRadarMsmt)
 
 }
 
+TEST(ukfTest, test_PredictLidarMeasurement)
+{
+    UKF ukf;
+    ASSERT_TRUE(false);
+}
+
+TEST(ukfTest, test_UpdateStateAndCovarianceFromLidarMsmt)
+{
+    UKF ukf;
+    ASSERT_TRUE(false);
+}
+
 int main(int argc, char** argv)
 {
     testing::InitGoogleTest(&argc, argv);

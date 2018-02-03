@@ -47,11 +47,13 @@ UKF::UKF() {
   S_pred_radar_ = MatrixXd(n_z_radar_, n_z_radar_);
   Zsig_pred_radar_ = MatrixXd(n_z_radar_, 2*n_aug_+1);
 
+  NIS_lidar_ = NIS_radar_ = 0.;
+
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 30;
+  std_a_ = 1.;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
-  std_yawdd_ = 30;
+  std_yawdd_ = 1.;
 
   // DO NOT MODIFY measurement noise values below these are provided by the
   // sensor manufacturer.
@@ -111,10 +113,13 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
         float theta   = meas_package.raw_measurements_(1);
         float rho_dot = meas_package.raw_measurements_(2);
 
+        /* At the beginning of the data, the tracked obj is moving in a straight
+         * line away from sensor. Hence we use rho_dot as init for linear
+           velocity of the object. */
         x_ << rho * cos(theta),    /* px */
-                 rho * sin(theta),    /* py */
-                 rho_dot,   // assume tracked obj moving in a straight line away from sensor
-                 0., 0.;
+              rho * sin(theta),    /* py */
+              rho_dot,
+              0., 0.;
 
     }
 
@@ -142,6 +147,9 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
     PredictRadarMeasurement();
     UpdateStateAndCovarianceFromRadarMsmt(meas_package);
   }
+
+  cout << "x_ = " << x_ << endl;
+  cout << "P_ = " << P_ << endl << endl;
 
 }
 
@@ -256,8 +264,34 @@ void UKF::PredictState(double delta_t) {
 }
 
 void UKF::PredictLidarMeasurement() {
-  // Xsig_pred_ --> Zsig_pred_lidar_
-  // Zsig_pred_lidar_ --> z_pred_lidar_, S_pred_lidar_
+  /*****************************************************************************
+   *  Transform sigma points from state space to measurement space
+   ****************************************************************************/
+  // Xsig_pred_[5x15] --> Zsig_pred_lidar_[2x15]
+  // Simply copy-paste px, py entries
+  Zsig_pred_lidar_ = Xsig_pred_.block(0, 0, Zsig_pred_lidar_.rows(), Zsig_pred_lidar_.cols());
+
+  // Zsig_pred_lidar_[2x15] --> S_pred_lidar_[2x2]
+  z_pred_lidar_.fill(0.0);
+  for(size_t i = 0; i < Zsig_pred_lidar_.cols(); ++i) {
+    z_pred_lidar_ += weights_(i) * Zsig_pred_lidar_.col(i);
+  }
+
+  // Zsig_pred_lidar_[2x15] --> S_pred_lidar_[2x2]
+  S_pred_lidar_.fill(0.0);
+  VectorXd diff;
+  for(size_t i = 0; i < Zsig_pred_lidar_.cols(); ++i) {
+     diff = Zsig_pred_lidar_.col(i) - z_pred_lidar_;
+
+     S_pred_lidar_ += weights_(i) * diff * diff.transpose();
+  }
+}
+
+double normalizeAngle(double angle) {
+    while (angle >  M_PI) angle -= 2.*M_PI;
+    while (angle < -M_PI) angle += 2.*M_PI;
+
+    return angle;
 }
 
 void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package) {
@@ -270,18 +304,39 @@ void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package)
   You'll also need to calculate the lidar NIS.
   */
 
+  VectorXd z_lidar(n_z_lidar_);
+  z_lidar = meas_package.raw_measurements_;
+
   // Cross-correlation between sigma points from state-space and measurement-space
-  // Zsig_pred_lidar_, Xsig_pred_, z_pred_lidar, x_ --> T_cross_corr_state_msmt_
+  // Zsig_pred_lidar_[2x15], Xsig_pred_[5x15], z_pred_lidar[2x1], x_[5x1] --> T_cross_corr_state_msmt_[5x2]
+  MatrixXd T_cross_corr_state_msmt(n_x_, n_z_lidar_);
+  T_cross_corr_state_msmt.fill(0.0);
+  VectorXd diff_x, diff_z;
+  for(size_t i = 0; i < Zsig_pred_lidar_.cols(); ++i) {
+    diff_x = (Xsig_pred_.col(i) - x_);
+    diff_x(3) = normalizeAngle(diff_x(3));
+
+    diff_z = (Zsig_pred_lidar_.col(i) - z_pred_lidar_);
+
+    T_cross_corr_state_msmt += weights_(i) * diff_x * diff_z.transpose();
+  }
 
   // Kalman gain
   // T_cross_corr_state_msmt_, S_pred_lidar_ --> K_
+  MatrixXd K(n_x_, n_z_lidar_);
+  K = T_cross_corr_state_msmt * S_pred_lidar_.inverse();
 
   // State update
   // x_, K_, z_lidar_, z_pred_lidar_  --> x_
+  VectorXd diff = (z_lidar - z_pred_lidar_);
+  x_ = x_ + K * diff;
 
   // Covariance update
   // P_, K_, S_pred_lidar_ --> P_
+  P_ = P_ - K * S_pred_lidar_ * K.transpose();
 
+  // NIS -- Normalized Innovation Squared
+  NIS_lidar_ = diff.transpose() * S_pred_lidar_.inverse() * diff;
 }
 
 void UKF::PredictRadarMeasurement() {
@@ -337,13 +392,6 @@ void UKF::PredictRadarMeasurement() {
   S_pred_radar_(2, 2) += std_radrd_*std_radrd_;
 }
 
-double normalizeAngle(double angle) {
-    while (angle >  M_PI) angle -= 2.*M_PI;
-    while (angle < -M_PI) angle += 2.*M_PI;
-
-    return angle;
-}
-
 void UKF::UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package) {
   /**
   TODO: UpdateRadar
@@ -389,4 +437,7 @@ void UKF::UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package)
   // Covariance update
   // P_, K_, S_pred_radar_ --> P_
   P_ = P_ - K * S_pred_radar_ * K.transpose();
+
+  // NIS -- Normalized Innovation Squared
+  NIS_radar_ = diff_z.transpose() * S_pred_radar_.inverse() * diff_z;
 }
