@@ -1,6 +1,6 @@
 #include "ukf.h"
 #include <iostream>
-#include <iomanip>
+#include <iomanip> // for std::setprecision
 #include "Eigen/Dense"
 
 using namespace std;
@@ -107,12 +107,16 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
    ****************************************************************************/
   if (!is_initialized_)
   {
-    if (meas_package.sensor_type_ == MeasurementPackage::LASER) {
+    if ((use_sensors=="LR" || use_sensors=="L") &&
+            meas_package.sensor_type_ == MeasurementPackage::LASER) {
         x_ << meas_package.raw_measurements_(0),
             meas_package.raw_measurements_(1),
             0., 0., 0.;
+        is_initialized_ = true;
+        std::cout << fixed << "Init state from Lidar @timestamp " << std::setprecision(3) << meas_package.timestamp_/(double)1e6 << std::endl << std::endl;
     }
-    else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
+    else if ((use_sensors=="LR" || use_sensors=="R") &&
+             meas_package.sensor_type_ == MeasurementPackage::RADAR)
     {
         /**
         Convert radar from polar to cartesian coordinates and initialize state.
@@ -127,10 +131,9 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
         x_ << rho * cos(theta),    /* px */
               rho * sin(theta),    /* py */
               0., 0., 0.;
-
+        is_initialized_ = true;
+        std::cout << fixed << "Init state from Radar @timestamp " << std::setprecision(3) << meas_package.timestamp_/(double)1e6 << std::endl << std::endl;
     }
-
-    is_initialized_ = true;
     previous_timestamp = meas_package.timestamp_;
     return;
   }
@@ -140,7 +143,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
    ****************************************************************************/
   double delta_t = (meas_package.timestamp_ - previous_timestamp)/(double)1e6;
 
-  cout << fixed <<  "PREV Timestamp = " << std::setprecision(3) << previous_timestamp/(double)1e6 << endl;
+  cout << fixed <<  "PREV Timestamp = " << previous_timestamp/(double)1e6 << endl;
   previous_timestamp = meas_package.timestamp_;
 
   PredictState(delta_t);
@@ -165,7 +168,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
   }  
 
   cout << "---------   " << sensor_name << endl;
-  cout << fixed <<  "Timestamp = " << std::setprecision(3) << meas_package.timestamp_/(double)1e6 << endl;
+  cout <<  "Timestamp = " << std::setprecision(3) << meas_package.timestamp_/(double)1e6 << endl;
   cout << "x_ = " << endl << x_ << endl;
   cout << "P_ = " << endl << P_ << endl << endl;
 
