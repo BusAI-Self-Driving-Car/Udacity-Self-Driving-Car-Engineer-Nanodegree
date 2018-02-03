@@ -146,28 +146,28 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
   cout << fixed <<  "PREV Timestamp = " << previous_timestamp/(double)1e6 << endl;
   previous_timestamp = meas_package.timestamp_;
 
+  std::string step_name = "STATE-pred-ONLY";
   PredictState(delta_t);
 
   /*****************************************************************************
    *  Update
-   ****************************************************************************/
-  std::string sensor_name;
+   ****************************************************************************/  
   if ((use_sensors=="LR" || use_sensors=="L") &&
           meas_package.sensor_type_ == MeasurementPackage::LASER)
   {
-    sensor_name = "LIDAR";
+    step_name = "LIDAR-pred-update";
     PredictLidarMeasurement();
     UpdateStateAndCovarianceFromLidarMsmt(meas_package);
   }
   else if ((use_sensors=="LR" || use_sensors=="R") &&
            meas_package.sensor_type_ == MeasurementPackage::RADAR)
   {
-    sensor_name = "RADAR";
+    step_name = "RADAR-pred-update";
     PredictRadarMeasurement();
     UpdateStateAndCovarianceFromRadarMsmt(meas_package);
   }  
 
-  cout << "---------   " << sensor_name << endl;
+  cout << "------------------------------   " << step_name << endl;
   cout <<  "Timestamp = " << std::setprecision(3) << meas_package.timestamp_/(double)1e6 << endl;
   cout << "x_ = " << endl << x_ << endl;
   cout << "P_ = " << endl << P_ << endl << endl;
