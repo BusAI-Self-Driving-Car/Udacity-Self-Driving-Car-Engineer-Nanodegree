@@ -58,7 +58,7 @@ UKF::UKF() {
   NIS_lidar_ = NIS_radar_ = 0.;
 
   // Process noise standard deviation longitudinal acceleration in m/s^2
-  std_a_ = 0.8;
+  std_a_ = 0.5;
 
   // Process noise standard deviation yaw acceleration in rad/s^2
   std_yawdd_ = 0.6;
@@ -262,13 +262,11 @@ void UKF::CalcPredictedStateAndCovariance() {
 
     VectorXd diff;
     P_.fill(0.0);
-    for (size_t i = 1; i < Xsig_pred_.cols(); ++i)
+    for (size_t i = 0; i < Xsig_pred_.cols(); ++i)
     {
         diff = (Xsig_pred_.col(i) - x_);
 
-        //angle normalization
-        while (diff(3)> M_PI) diff(3)-=2.*M_PI;
-        while (diff(3)<-M_PI) diff(3)+=2.*M_PI;
+        diff(3) = normalizeAngle(diff(3));
 
         // Predict state covariance matrix
         P_ += weights_(i) * diff * diff.transpose();
