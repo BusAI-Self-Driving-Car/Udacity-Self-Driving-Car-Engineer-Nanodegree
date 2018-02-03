@@ -28,9 +28,9 @@ void check_arguments(int argc, char* argv[]) {
     cerr << usage_instructions << endl;
   } else if (argc == 2) {
     cerr << "Please include an output file.\n" << usage_instructions << endl;
-  } else if (argc == 3) {
+  } else if (argc == 3 || argc == 4) {
     has_valid_args = true;
-  } else if (argc > 3) {
+  } else if (argc > 4) {
     cerr << "Too many arguments.\n" << usage_instructions << endl;
   }
 
@@ -61,6 +61,23 @@ int main(int argc, char* argv[]) {
 
   string out_file_name_ = argv[2];
   ofstream out_file_(out_file_name_.c_str(), ofstream::out);
+
+  string use_sensors = "";
+  if (argc == 4)
+  {
+    use_sensors = argv[3];
+
+    // L - lidar only
+    // R - Radar only
+    // LR - both sensors
+    // Empty - no sensor to be used
+    if ( (use_sensors.compare("L") != 0) &&
+         (use_sensors.compare("R") != 0) &&
+         (use_sensors.compare("LR") != 0) ) {
+      use_sensors = "None";
+    }
+  }
+  std::cout << "Use sensor: " << (use_sensors.empty() ? "None" : use_sensors) << std::endl << std::endl;
 
   check_files(in_file_, in_file_name_, out_file_, out_file_name_);
 
@@ -145,37 +162,38 @@ int main(int argc, char* argv[]) {
 
   // column names for output file
   out_file_ << "time_stamp" << "\t";
-  out_file_ << "px_state" << "\t";
+  /*out_file_ << "px_state" << "\t";
   out_file_ << "py_state" << "\t";
   out_file_ << "v_state" << "\t";
   out_file_ << "yaw_angle_state" << "\t";
-  out_file_ << "yaw_rate_state" << "\t";
+  out_file_ << "yaw_rate_state" << "\t";*/
   out_file_ << "sensor_type" << "\t";
   out_file_ << "NIS" << "\t";
-  out_file_ << "px_measured" << "\t";
+  /*out_file_ << "px_measured" << "\t";
   out_file_ << "py_measured" << "\t";
   out_file_ << "px_ground_truth" << "\t";
   out_file_ << "py_ground_truth" << "\t";
   out_file_ << "vx_ground_truth" << "\t";
-  out_file_ << "vy_ground_truth" << "\n";
-
+  out_file_ << "vy_ground_truth" << "\n";*/
+  out_file_ << "\n";
 
   for (size_t k = 0; k < number_of_measurements; ++k) {
     // Call the UKF-based fusion
-    ukf.ProcessMeasurement(measurement_pack_list[k]);
-
-    // timestamp
-    out_file_ << measurement_pack_list[k].timestamp_ << "\t"; // pos1 - est
+    ukf.ProcessMeasurement(measurement_pack_list[k], use_sensors);
 
     // output the state vector
-    out_file_ << ukf.x_(0) << "\t"; // pos1 - est
-    out_file_ << ukf.x_(1) << "\t"; // pos2 - est
-    out_file_ << ukf.x_(2) << "\t"; // vel_abs -est
-    out_file_ << ukf.x_(3) << "\t"; // yaw_angle -est
-    out_file_ << ukf.x_(4) << "\t"; // yaw_rate -est
+    //out_file_ << ukf.x_(0) << "\t"; // pos1 - est
+    //out_file_ << ukf.x_(1) << "\t"; // pos2 - est
+    //out_file_ << ukf.x_(2) << "\t"; // vel_abs -est
+    //out_file_ << ukf.x_(3) << "\t"; // yaw_angle -est
+    //out_file_ << ukf.x_(4) << "\t"; // yaw_rate -est
 
     // output lidar and radar specific data
-    if (measurement_pack_list[k].sensor_type_ == MeasurementPackage::LASER) {
+    if ((use_sensors=="LR" || use_sensors=="L") &&
+         measurement_pack_list[k].sensor_type_ == MeasurementPackage::LASER) {
+      // timestamp
+      out_file_ << measurement_pack_list[k].timestamp_ << "\t"; // pos1 - est
+
       // sensor type
       out_file_ << "lidar" << "\t";
 
@@ -183,10 +201,16 @@ int main(int argc, char* argv[]) {
       out_file_ << ukf.NIS_lidar_ << "\t";
 
       // output the lidar sensor measurement px and py
-      out_file_ << measurement_pack_list[k].raw_measurements_(0) << "\t";
-      out_file_ << measurement_pack_list[k].raw_measurements_(1) << "\t";
+      //out_file_ << measurement_pack_list[k].raw_measurements_(0) << "\t";
+      //out_file_ << measurement_pack_list[k].raw_measurements_(1) << "\t";
 
-    } else if (measurement_pack_list[k].sensor_type_ == MeasurementPackage::RADAR) {
+      out_file_ << "\n";
+
+    } else if ((use_sensors=="LR" || use_sensors=="R") &&
+               measurement_pack_list[k].sensor_type_ == MeasurementPackage::RADAR) {
+      // timestamp
+      out_file_ << measurement_pack_list[k].timestamp_ << "\t"; // pos1 - est
+
       // sensor type
       out_file_ << "radar" << "\t";
 
@@ -196,15 +220,17 @@ int main(int argc, char* argv[]) {
       // output radar measurement in cartesian coordinates
       float ro = measurement_pack_list[k].raw_measurements_(0);
       float phi = measurement_pack_list[k].raw_measurements_(1);
-      out_file_ << ro * cos(phi) << "\t"; // px measurement
-      out_file_ << ro * sin(phi) << "\t"; // py measurement
+      //out_file_ << ro * cos(phi) << "\t"; // px measurement
+      //out_file_ << ro * sin(phi) << "\t"; // py measurement
+
+      out_file_ << "\n";
     }
 
     // output the ground truth
-    out_file_ << gt_pack_list[k].gt_values_(0) << "\t";
+    /*out_file_ << gt_pack_list[k].gt_values_(0) << "\t";
     out_file_ << gt_pack_list[k].gt_values_(1) << "\t";
     out_file_ << gt_pack_list[k].gt_values_(2) << "\t";
-    out_file_ << gt_pack_list[k].gt_values_(3) << "\n";
+    out_file_ << gt_pack_list[k].gt_values_(3) << "\n";*/
 
     // convert ukf x vector to cartesian to compare to ground truth
     VectorXd ukf_x_cartesian_ = VectorXd(4);

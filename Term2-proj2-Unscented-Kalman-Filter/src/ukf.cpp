@@ -92,7 +92,7 @@ UKF::UKF() {
 
 UKF::~UKF() {}
 
-void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
+void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_sensors) {
   /**
   TODO: ProcessMeasurement
 
@@ -144,16 +144,21 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package) {
   /*****************************************************************************
    *  Update
    ****************************************************************************/
-  if (meas_package.sensor_type_ == MeasurementPackage::LASER)
+  std::string sensor_name;
+  if ((use_sensors=="LR" || use_sensors=="L") &&
+          meas_package.sensor_type_ == MeasurementPackage::LASER)
   {
+    sensor_name = "LIDAR";
     PredictLidarMeasurement();
     UpdateStateAndCovarianceFromLidarMsmt(meas_package);
   }
-  else if (meas_package.sensor_type_ == MeasurementPackage::RADAR)
+  else if ((use_sensors=="LR" || use_sensors=="R") &&
+           meas_package.sensor_type_ == MeasurementPackage::RADAR)
   {
+    sensor_name = "RADAR";
     PredictRadarMeasurement();
     UpdateStateAndCovarianceFromRadarMsmt(meas_package);
-  }
+  }  
 
   cout << "x_ = " << x_ << endl;
   cout << "P_ = " << P_ << endl << endl;

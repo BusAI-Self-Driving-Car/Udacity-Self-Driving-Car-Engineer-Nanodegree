@@ -26,9 +26,26 @@ std::string hasData(std::string s) {
   return "";
 }
 
-int main()
+int main(int argc, char* argv[])
 {
   using namespace sdcnd;
+
+  string use_sensors = "";
+  if (argc == 2)
+  {
+    use_sensors = argv[1];
+
+    // L - lidar only
+    // R - Radar only
+    // LR - both sensors
+    // Empty - no sensor to be used
+    if ( (use_sensors.compare("L") != 0) &&
+         (use_sensors.compare("R") != 0) &&
+         (use_sensors.compare("LR") != 0) ) {
+      use_sensors = "None";
+    }
+  }
+  std::cout << "Use sensor: " << (use_sensors.empty() ? "None" : use_sensors) << std::endl << std::endl;
 
   uWS::Hub h;
 
@@ -40,7 +57,7 @@ int main()
   vector<VectorXd> estimations;
   vector<VectorXd> ground_truth;
 
-  h.onMessage([&ukf,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
+  h.onMessage([&use_sensors, &ukf,&tools,&estimations,&ground_truth](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
     // The 2 signifies a websocket event
@@ -108,7 +125,7 @@ int main()
     	  ground_truth.push_back(gt_values);
           
           //Call ProcessMeasurment(meas_package) for Kalman filter
-    	  ukf.ProcessMeasurement(meas_package);    	  
+          ukf.ProcessMeasurement(meas_package, use_sensors);
 
     	  //Push the current estimated x,y positon from the Kalman filter's state vector
 
