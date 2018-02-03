@@ -126,8 +126,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
            velocity of the object. */
         x_ << rho * cos(theta),    /* px */
               rho * sin(theta),    /* py */
-              rho_dot,
-              0., 0.;
+              0., 0., 0.;
 
     }
 
@@ -191,8 +190,8 @@ void UKF::CalcAugmentedSigmaPoints() {
 
   //create augmented mean state
   x_aug.head(5) = x_;
-  x_aug(5) = 0;
-  x_aug(6) = 0;
+  x_aug(5) = 0.0;
+  x_aug(6) = 0.0;
 
   //create augmented covariance matrix
   P_aug.fill(0.0);
@@ -204,6 +203,7 @@ void UKF::CalcAugmentedSigmaPoints() {
   MatrixXd L = P_aug.llt().matrixL();
 
   //create augmented sigma points
+  Xsig_aug_.fill(0.0);
   Xsig_aug_.col(0)  = x_aug;
   for (int i = 0; i< n_aug_; ++i)
   {
@@ -216,6 +216,7 @@ void UKF::CalcAugmentedSigmaPoints() {
 
 void UKF::PredictStateSigmaPoints(double delta_t) {
 
+  Xsig_pred_.fill(0.0);
   for(size_t col = 0; col < Xsig_aug_.cols(); ++col)
   {
     auto px = Xsig_aug_(0, col);
