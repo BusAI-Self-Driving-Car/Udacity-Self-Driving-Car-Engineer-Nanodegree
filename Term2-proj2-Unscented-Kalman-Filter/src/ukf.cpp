@@ -151,7 +151,7 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
 
   /*****************************************************************************
    *  Update
-   ****************************************************************************/  
+   ****************************************************************************/
   if ((use_sensors=="LR" || use_sensors=="L") &&
           meas_package.sensor_type_ == MeasurementPackage::LASER)
   {
@@ -393,14 +393,6 @@ void UKF::PredictRadarMeasurement() {
 }
 
 void UKF::UpdateStateAndCovarianceFromRadarMsmt(MeasurementPackage meas_package) {
-  /**
-  TODO: UpdateRadar
-
-  Complete this function! Use radar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
-
-  You'll also need to calculate the radar NIS.
-  */
 
   VectorXd z_radar(n_z_radar_);
   z_radar = meas_package.raw_measurements_;
