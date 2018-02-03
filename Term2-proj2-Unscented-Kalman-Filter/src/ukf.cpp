@@ -1,5 +1,6 @@
 #include "ukf.h"
 #include <iostream>
+#include <iomanip>
 #include "Eigen/Dense"
 
 using namespace std;
@@ -139,6 +140,10 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
    *  Prediction
    ****************************************************************************/
   double delta_t = (meas_package.timestamp_ - previous_timestamp)/(double)1e6;
+
+  cout << fixed <<  "PREV Timestamp = " << std::setprecision(3) << previous_timestamp/(double)1e6 << endl;
+  previous_timestamp = meas_package.timestamp_;
+
   PredictState(delta_t);
 
   /*****************************************************************************
@@ -160,8 +165,10 @@ void UKF::ProcessMeasurement(MeasurementPackage meas_package, std::string use_se
     UpdateStateAndCovarianceFromRadarMsmt(meas_package);
   }  
 
-  cout << "x_ = " << x_ << endl;
-  cout << "P_ = " << P_ << endl << endl;
+  cout << "---------   " << sensor_name << endl;
+  cout << fixed <<  "Timestamp = " << std::setprecision(3) << meas_package.timestamp_/(double)1e6 << endl;
+  cout << "x_ = " << endl << x_ << endl;
+  cout << "P_ = " << endl << P_ << endl << endl;
 
 }
 
@@ -293,14 +300,6 @@ void UKF::PredictLidarMeasurement() {
 }
 
 void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package) {
-  /**
-  TODO: UpdateLidar
-
-  Complete this function! Use lidar data to update the belief about the object's
-  position. Modify the state vector, x_, and covariance, P_.
-
-  You'll also need to calculate the lidar NIS.
-  */
 
   VectorXd z_lidar(n_z_lidar_);
   z_lidar = meas_package.raw_measurements_;
