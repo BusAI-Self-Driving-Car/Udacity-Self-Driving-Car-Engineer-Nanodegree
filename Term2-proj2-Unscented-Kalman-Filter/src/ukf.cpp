@@ -295,10 +295,10 @@ void UKF::PredictLidarMeasurement() {
   VectorXd diff;
   for(size_t i = 0; i < Zsig_pred_lidar_.cols(); ++i) {
      diff = Zsig_pred_lidar_.col(i) - z_pred_lidar_;
-     diff(1) = normalizeAngle(diff(1));
-
      S_pred_lidar_ += weights_(i) * diff * diff.transpose();
   }
+  S_pred_lidar_(0, 0) += std_laspx_*std_laspx_;
+  S_pred_lidar_(1, 1) += std_laspy_*std_laspy_;
 }
 
 void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package) {
@@ -316,8 +316,6 @@ void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package)
     diff_x(3) = normalizeAngle(diff_x(3));
 
     diff_z = (Zsig_pred_lidar_.col(i) - z_pred_lidar_);
-    diff_z(1) = normalizeAngle(diff_z(1));
-
     T_cross_corr_state_msmt += weights_(i) * diff_x * diff_z.transpose();
   }
 
@@ -329,7 +327,6 @@ void UKF::UpdateStateAndCovarianceFromLidarMsmt(MeasurementPackage meas_package)
   // State update
   // x_, K_, z_lidar_, z_pred_lidar_  --> x_
   diff_z = (z_lidar - z_pred_lidar_);
-  diff_z(1) = normalizeAngle(diff_z(1));
   x_ = x_ + K * diff_z;
 
   // Covariance update
