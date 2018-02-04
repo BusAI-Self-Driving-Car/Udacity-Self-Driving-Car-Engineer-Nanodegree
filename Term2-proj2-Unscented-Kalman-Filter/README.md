@@ -1,8 +1,3 @@
-# TODO
-
-- Complete data/analyze_data.ipynb
-
-
 # My notes
 
 Debugging steps:
