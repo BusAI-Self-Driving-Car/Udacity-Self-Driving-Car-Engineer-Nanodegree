@@ -2,48 +2,17 @@
 
 Debugging steps:
 
----
-=======
-Problem
-=======
+## Problem
 Even with both of the sensors turned off, the state covariance exploded.
 
-=========
-Diagnosis
-=========
+## Diagnosis
 The explosion was taking place in UKF::PredictStateSigmaPoints() where the state sigma-points are passed through the process function. There are delta_t^2 terms in here, which explode with increasing delta_t.
 
-========
-Solution
-========
+## Solution
 The previous timestamp was not getting set properly, so that delta_t was always w.r.t. the first timestamp, instead of w.r.t. to the previous timestamp.
 
 ---
-=======
-Problem
-=======
-With both sensors turned off (only process model runs), why does only the varaince for px explode and not py?
-P_ =
-688.217   0.000  28.841   0.000   0.000
-  0.000   1.000   0.000   0.000   0.000
- 28.841   0.000   1.312   0.000   0.000
-  0.000   0.000   0.000   1.845  -0.132
-  0.000   0.000   0.000  -0.132   1.449
-
-=========
-Diagnosis
-=========
-
-
-========
-Solution
-========
----
-
----
-=======
-Problem
-=======
+## Problem
 With only lidar turned ON, state x_ explodes, whereas state covariance P_ quickly goes to 0.
 Possibly related: NIS for lidar also has extremely large values -- oder of 1E6.
 
@@ -55,21 +24,18 @@ P_ =
 -0.000  0.000 -0.000  0.000  0.000
 -0.000  0.000 -0.000  0.000  0.001
 
-=========
-Diagnosis
-=========
+## Diagnosis
 The predicted measurement covariance for S_pred_lidar_ quickly goes to 0 matrix.
 
-========
-Solution
-========
+## Solution
 Add the previously forgotten lidar sensor-noise covariance to S_pred_lidar_.
+
 ---
 
 # Unscented Kalman Filter Project Starter Code
 Self-Driving Car Engineer Nanodegree Program
 
-In this project utilize an Unscented Kalman Filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project rubric. 
+In this project I use an Unscented Kalman Filter to estimate the state of a moving object of interest with noisy lidar and radar measurements. Passing the project requires obtaining RMSE values that are lower that the tolerance outlined in the project rubric. 
 
 This project involves the Term 2 Simulator which can be downloaded [here](https://github.com/udacity/self-driving-car-sim/releases)
 
@@ -89,7 +55,7 @@ Note that the programs that need to be written to accomplish the project are src
 
 The program main.cpp has already been filled out, but feel free to modify it.
 
-Here is the main protcol that main.cpp uses for uWebSocketIO in communicating with the simulator.
+Here is the main protocol that main.cpp uses for uWebSocketIO in communicating with the simulator.
 
 
 INPUT: values provided by the simulator to the c++ program
