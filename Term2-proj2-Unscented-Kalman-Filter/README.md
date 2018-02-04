@@ -3,10 +3,10 @@
 Debugging steps:
 
 ### Problem
-Even with both of the sensors turned off, the state covariance exploded.
+Even with both of the sensors turned off, the state covariance got extremely large very quickly.
 
 ### Diagnosis
-The explosion was taking place in UKF::PredictStateSigmaPoints() where the state sigma-points are passed through the process function. There are delta_t^2 terms in here, which explode with increasing delta_t.
+This was taking place in UKF::PredictStateSigmaPoints() where the state sigma-points are passed through the process function. There are delta_t^2 terms in here, which explode with increasing delta_t.
 
 ### Solution
 The previous timestamp was not getting set properly, so that delta_t was always w.r.t. the first timestamp, instead of w.r.t. to the previous timestamp.
@@ -17,12 +17,12 @@ With only lidar turned ON, state x_ explodes, whereas state covariance P_ quickl
 Possibly related: NIS for lidar also has extremely large values -- oder of 1E6.
 
 Why?
-P_ =
- 0.000  0.000  0.000 -0.000 -0.000
- 0.000 -0.000  0.000  0.000  0.000
- 0.000  0.000  0.001 -0.000 -0.000
--0.000  0.000 -0.000  0.000  0.000
--0.000  0.000 -0.000  0.000  0.001
+P_ =  
+ [0.000  0.000  0.000 -0.000 -0.000  
+ 0.000 -0.000  0.000  0.000  0.000  
+ 0.000  0.000  0.001 -0.000 -0.000  
+-0.000  0.000 -0.000  0.000  0.000  
+-0.000  0.000 -0.000  0.000  0.001]
 
 ### Diagnosis
 The predicted measurement covariance for S_pred_lidar_ quickly goes to 0 matrix.
