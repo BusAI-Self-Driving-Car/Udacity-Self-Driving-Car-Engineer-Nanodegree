@@ -75,7 +75,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
         ekf_.x_ << rho * cos(theta),    /* px */
                    rho * sin(theta),    /* py */
                    rho_dot * cos(theta) - rho * sin(theta), /* vx */
-                   rho_dot * sin(theta) + rho * cos(theta); /* py */
+                   rho_dot * sin(theta) + rho * cos(theta); /* vy */
     }
     else if (measurement_pack.sensor_type_ == MeasurementPackage::LASER) {
       /**
@@ -148,6 +148,7 @@ void FusionEKF::ProcessMeasurement(const MeasurementPackage &measurement_pack) {
   previous_timestamp_ = measurement_pack.timestamp_;
 
   // print the output
-  cout << "x_ = " << ekf_.x_ << endl;
-  cout << "P_ = " << ekf_.P_ << endl;
+  cout << "    ------------    "  << endl;
+  cout << "x_ = "  << endl << ekf_.x_ << endl;
+  cout << "P_ = "  << endl << ekf_.P_ << endl << endl;
 }
