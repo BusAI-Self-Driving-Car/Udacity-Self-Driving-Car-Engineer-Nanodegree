@@ -1,4 +1,4 @@
-project(ekf_lidar_radar)
+project(ekf)
 
 cmake_minimum_required (VERSION 3.5)
 
@@ -7,20 +7,21 @@ add_definitions(-std=c++11)
 set(CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS, "${CXX_FLAGS}")
 
-set(sources src/main.cpp src/tools.cpp src/fusion_ekf.cpp src/kalman_filter.cpp src/tools.h src/fusion_ekf.h src/kalman_filter.h)
+set(SOURCES src/main.cpp src/tools.cpp src/fusion_ekf.cpp src/kalman_filter.cpp)
+set(SOURCES_FILEIO src/main_fileio.cpp src/tools.cpp src/fusion_ekf.cpp src/kalman_filter.cpp)
 
+set(DEP_LIBRARIES z ssl uv uWS)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
-
-include_directories(/usr/local/include)
-include_directories(/usr/local/opt/openssl/include)
-link_directories(/usr/local/lib)
-link_directories(/usr/local/opt/openssl/lib)
-link_directories(/usr/local/Cellar/libuv/1*/lib)
-
+    include_directories(/usr/local/include)
+    include_directories(/usr/local/opt/openssl/include)
+    link_directories(/usr/local/lib)
+    link_directories(/usr/local/opt/openssl/lib)
+    link_directories(/usr/local/Cellar/libuv/1*/lib)
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin") 
 
+add_executable(${PROJECT_NAME} ${SOURCES})
+target_link_libraries(${PROJECT_NAME} ${DEP_LIBRARIES})
 
-add_executable(${PROJECT_NAME} ${sources})
-
-target_link_libraries(${PROJECT_NAME} z ssl uv uWS)
+add_executable(${PROJECT_NAME}_fileio ${SOURCES_FILEIO})
+target_link_libraries(${PROJECT_NAME}_fileio ${DEP_LIBRARIES})
