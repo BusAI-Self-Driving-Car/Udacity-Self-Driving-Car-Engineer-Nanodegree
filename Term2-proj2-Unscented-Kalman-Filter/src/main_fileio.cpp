@@ -253,7 +253,7 @@ int main(int argc, char* argv[]) {
   cout << "Accuracy - RMSE:" << endl << rmse << endl;
 
   // save accuracy value
-  ofstream out_file_accuracy_("accuracy.txt", ofstream::out);
+  ofstream out_file_accuracy_("./data/accuracy.txt", ofstream::out);
   out_file_accuracy_ << "Accuracy - RMSE: " << endl << rmse << endl;
 
   // close open files
