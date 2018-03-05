@@ -44,9 +44,7 @@ int main() {
 
   // noise generation
   default_random_engine gen;
-  normal_distribution<double> N_x_init(0, sigma_pos[0]);
-  normal_distribution<double> N_y_init(0, sigma_pos[1]);
-  normal_distribution<double> N_theta_init(0, sigma_pos[2]);
+
   normal_distribution<double> N_obs_x(0, sigma_landmark[0]);
   normal_distribution<double> N_obs_y(0, sigma_landmark[1]);
   double n_x, n_y, n_theta, n_range, n_heading;
@@ -78,7 +76,7 @@ int main() {
   double cum_mean_error[3] = {0, 0, 0};
 
   for (int i = 0; i < num_time_steps; ++i) {
-    cout << "Time step: " << i << endl;
+    cout << "Time step: " << i << ", ";
     // Read in landmark observations for current time step.
     ostringstream file;
     file << "../data/observation/observations_" << setfill('0') << setw(6)
@@ -91,10 +89,7 @@ int main() {
 
     // Initialize particle filter if this is the first time step.
     if (!pf.initialized()) {
-      n_x = N_x_init(gen);
-      n_y = N_y_init(gen);
-      n_theta = N_theta_init(gen);
-      pf.init(gt[i].x + n_x, gt[i].y + n_y, gt[i].theta + n_theta, sigma_pos);
+      pf.init(gt[i].x, gt[i].y, gt[i].theta, sigma_pos);
     } else {
       // Predict the vehicle's next state (noiseless).
       pf.prediction(delta_t, sigma_pos, position_meas[i - 1].velocity,
