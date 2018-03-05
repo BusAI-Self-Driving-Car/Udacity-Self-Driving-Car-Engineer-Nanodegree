@@ -8,7 +8,6 @@
 #include <math.h>
 #include <algorithm>
 #include <iostream>
-#include <iostream>
 #include <iterator>
 #include <numeric>
 #include <random>
