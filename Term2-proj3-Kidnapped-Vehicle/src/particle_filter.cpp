@@ -74,7 +74,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   }
 }
 
-void ParticleFilter::dataAssociation(std::vector<LandmarkObs> predicted,
+void ParticleFilter::dataAssociation(const std::vector<LandmarkObs>& predicted,
                                      std::vector<LandmarkObs>& observations) {
   // TODO: Find the predicted measurement that is closest to each observed
   // measurement and assign the
@@ -104,6 +104,43 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   //   (look at equation
   //   3.33
   //   http://planning.cs.uiuc.edu/node99.html
+
+  default_random_engine gen;
+  normal_distribution<double> N_x(0, std_landmark[0]);
+  normal_distribution<double> N_y(0, std_landmark[1]);
+
+  std::vector<LandmarkObs> observations_map;
+  LandmarkObs lobs;
+  for (const auto& particle : particles) {
+
+    auto x_p = particle.x;
+    auto y_p = particle.y;
+    auto theta = particle.theta;
+
+    // Transform observations from Sensor-frame to Map-frame
+    for(const auto& observation : observations) {
+
+      lobs.id = -1; // observations[j].id;
+      auto x = observation.x;
+      auto y = observation.y;
+
+      lobs.x = x_p + x*cos(theta) + y*-sin(theta);
+      lobs.y = y_p + x*sin(theta) + y*cos(theta);
+      observations_map.push_back(lobs);
+    }
+
+    // Predicted observations (must be in Map-frame too!)
+    std::vector<LandmarkObs> predicted_obs;
+    for (const auto& landmark : map_landmarks.landmark_list) {
+
+      if (dist(landmark.x_f, landmark.y_f, x_p, y_p) <= sensor_range) {
+        predicted_obs.push_back(landmark);
+      }
+    }
+
+    dataAssociation(predicted_obs, observations_map);
+  }
+
 }
 
 void ParticleFilter::resample() {
