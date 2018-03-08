@@ -94,7 +94,7 @@ void ParticleFilter::dataAssociation(const std::vector<LandmarkObs>& predicted,
       if(dist_obs_pred < distance)
       {
         observation.id = pred.id;
-        dist_obs_pred = distance;
+        distance = dist_obs_pred;
       }
     }
   }
@@ -108,18 +108,21 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   //   according to the MAP'S coordinate system. You will need to transform
   //   between the two systems.
 
+  weights.clear();
+
   auto sig_x = std_landmark[0];
   auto sig_y = std_landmark[1];
 
   std::vector<LandmarkObs> observations_map;
   LandmarkObs lobs;
-  for (const auto& particle : particles) {
+  for (auto& particle : particles) {
 
     auto x_p = particle.x;
     auto y_p = particle.y;
     auto theta = particle.theta;
 
     // Transform observations from Sensor-frame to Map-frame
+    observations_map.clear();
     for(const auto& observation : observations) {
 
       lobs.id = -1; // observations[j].id;
@@ -145,6 +148,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
 
     dataAssociation(predicted_obs, observations_map);
+    SetAssociations(particle, observations_map);
 
     // Calculate particle weights
     double weight = 1.0;
