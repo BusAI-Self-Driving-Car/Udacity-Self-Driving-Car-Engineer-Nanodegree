@@ -85,19 +85,19 @@ void ParticleFilter::dataAssociation(const std::vector<LandmarkObs>& predicted,
   //   implement this method and use it as a helper during the updateWeights
   //   phase.
 
-	for(auto& observation : observations)
-	{
-		double distance = std::numeric_limits<float>::max();
-		for(const auto& pred : predicted)
-		{
-			double dist_obs_pred = dist(observation.x, observation.y, pred.x, pred.y);
-			if(dist_obs_pred < distance)
-			{
-				observation.id = pred.id;
-				dist_obs_pred = distance;
-			}
-		}
-	}
+  for(auto& observation : observations)
+  {
+    double distance = std::numeric_limits<float>::max();
+    for(const auto& pred : predicted)
+    {
+      double dist_obs_pred = dist(observation.x, observation.y, pred.x, pred.y);
+      if(dist_obs_pred < distance)
+      {
+        observation.id = pred.id;
+        dist_obs_pred = distance;
+      }
+    }
+  }
 }
 
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
@@ -106,14 +106,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
   // NOTE: The observations are given in the VEHICLE'S coordinate system. Your
   // particles are located
   //   according to the MAP'S coordinate system. You will need to transform
-	//   between the two systems.
+  //   between the two systems.
 
-	auto sig_x = std_landmark[0];
-	auto sig_y = std_landmark[1];
+  auto sig_x = std_landmark[0];
+  auto sig_y = std_landmark[1];
 
   std::vector<LandmarkObs> observations_map;
   LandmarkObs lobs;
-	for (const auto& particle : particles) {
+  for (const auto& particle : particles) {
 
     auto x_p = particle.x;
     auto y_p = particle.y;
@@ -133,63 +133,63 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
 
     // Predicted observations (must be in Map-frame too!)
     std::vector<LandmarkObs> predicted_obs;		
-		for (const auto& landmark : map_landmarks.landmark_list) {
+    for (const auto& landmark : map_landmarks.landmark_list) {
 
       if (dist(landmark.x_f, landmark.y_f, x_p, y_p) <= sensor_range) {
-				lobs.id = landmark.id_i;
-				lobs.x = landmark.x_f;
-				lobs.y = landmark.y_f;
+        lobs.id = landmark.id_i;
+        lobs.x = landmark.x_f;
+        lobs.y = landmark.y_f;
 
-				predicted_obs.push_back(lobs);
+        predicted_obs.push_back(lobs);
       }
     }
 
     dataAssociation(predicted_obs, observations_map);
 
-		// Calculate particle weights
-		double weight = 1.0;
-		double mu_x, mu_y;
+    // Calculate particle weights
+    double weight = 1.0;
+    double mu_x, mu_y;
 
-		for(auto& observation : observations_map)
-		{
-			auto x_obs = observation.x;
-			auto y_obs = observation.y;
+    for(auto& observation : observations_map)
+    {
+      auto x_obs = observation.x;
+      auto y_obs = observation.y;
 
-			for(const auto& pred : predicted_obs)
-			{
-				if(pred.id==observation.id)
-				{
-					mu_x = pred.x;
-					mu_y = pred.y;
-					break;
-				}
-			}
+      for(const auto& pred : predicted_obs)
+      {
+        if(pred.id==observation.id)
+        {
+          mu_x = pred.x;
+          mu_y = pred.y;
+          break;
+        }
+      }
 
-			// calculate normalization term
-			double gauss_norm = 1/(2 * M_PI * sig_x * sig_y);
+      // calculate normalization term
+      double gauss_norm = 1/(2 * M_PI * sig_x * sig_y);
 
-			// calculate exponent
-			double exponent = pow((x_obs - mu_x), 2)/(2 * pow(sig_x, 2)) +
-			                  pow((y_obs - mu_y), 2)/(2 * pow(sig_y, 2));
+      // calculate exponent
+      double exponent = pow((x_obs - mu_x), 2)/(2 * pow(sig_x, 2)) +
+                        pow((y_obs - mu_y), 2)/(2 * pow(sig_y, 2));
 
-			// calculate weight using normalization terms and exponent
-			weight *= gauss_norm * exp(-exponent);
-		}
-		weights.push_back(weight);
+      // calculate weight using normalization terms and exponent
+      weight *= gauss_norm * exp(-exponent);
+    }
+    weights.push_back(weight);
   }
 }
 
 void ParticleFilter::resample() {
 
-	default_random_engine gen;
-	std::discrete_distribution<int> distr (weights.begin(), weights.end());
+  default_random_engine gen;
+  std::discrete_distribution<int> distr (weights.begin(), weights.end());
 
-	std::vector<Particle> particles_resampled;
-	for(size_t i = 0; i < particles.size(); ++i) {
-		particles_resampled.push_back(particles[distr(gen)]);
-	}
+  std::vector<Particle> particles_resampled;
+  for(size_t i = 0; i < particles.size(); ++i) {
+    particles_resampled.push_back(particles[distr(gen)]);
+  }
 
-	particles = particles_resampled;
+  particles = particles_resampled;
 }
 
 Particle ParticleFilter::SetAssociations(Particle& particle,
