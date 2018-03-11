@@ -76,7 +76,7 @@ class ParticleFilter {
    * @param observations Vector of landmark observations
    */
   void dataAssociation(const std::vector<LandmarkObs>& predicted,
-                       std::vector<LandmarkObs>& observations);
+                       std::vector<LandmarkObs>& observations_map);
 
   /**
    * updateWeights Updates the weights for each particle based on the likelihood
@@ -115,6 +115,23 @@ class ParticleFilter {
   * initialized Returns whether particle filter is initialized yet or not.
   */
   const bool initialized() const { return is_initialized; }
+
+private:
+  /*
+   * Transform the observations from sensor-frame to map-frame, based on the
+   * pose of the particle in the map-frame.
+   */
+  void transformObsToMapFrame(const Particle& particle,
+                              const std::vector<LandmarkObs>& observations,
+                              std::vector<LandmarkObs>& observations_map);
+
+  /*
+   * Calculate particle weight based on how well the observations align with the
+   * predicted observations given the particle pose.
+   */
+  double calcParticleWeight(std::vector<LandmarkObs> predicted_obs,
+                            std::vector<LandmarkObs> observations_map,
+                            double std_landmark[]);
 };
 
 #endif /* PARTICLE_FILTER_H_ */
