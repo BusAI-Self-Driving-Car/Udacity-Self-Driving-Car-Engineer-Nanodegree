@@ -53,7 +53,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   normal_distribution<double> N_y_init(0, std_pos[1]);
   normal_distribution<double> N_theta_init(0, std_pos[2]);
 
-  if(yaw_rate < 1e-5) { // Vehicle not turning
+  if(abs(yaw_rate) < 1e-5) { // Vehicle not turning
     for (size_t i = 0; i < num_particles; ++i) {
       double theta = particles[i].theta;
       particles[i].x += velocity * delta_t * cos(theta) + N_x_init(gen);
@@ -64,13 +64,16 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   } else {
 
     for (size_t i = 0; i < num_particles; ++i) {
-      double theta = particles[i].theta;
-      particles[i].x += velocity/yaw_rate * (sin(theta + delta_t*yaw_rate) -
-                                             sin(theta)) + N_x_init(gen);
-      particles[i].y += velocity/yaw_rate * (cos(theta) - cos(theta +
-                                                              delta_t*yaw_rate))
-                        + N_y_init(gen);
-      particles[i].theta += theta + delta_t*yaw_rate + N_theta_init(gen);
+      auto theta = particles[i].theta;
+      auto theta_pred = theta + delta_t*yaw_rate;
+
+      particles[i].x += velocity/yaw_rate * (sin(theta_pred) - sin(theta)) +
+                        N_x_init(gen);
+
+      particles[i].y += velocity/yaw_rate * (cos(theta) - cos(theta_pred)) +
+                        N_y_init(gen);
+
+      particles[i].theta = theta_pred + N_theta_init(gen);
     }
   }
 }
@@ -78,12 +81,7 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
 void ParticleFilter::dataAssociation(const std::vector<LandmarkObs>& predicted,
                                      std::vector<LandmarkObs>& observations) {
   // TODO: Find the predicted measurement that is closest to each observed
-  // measurement and assign the
-  //   observed measurement to this particular landmark.
-  // NOTE: this method will NOT be called by the grading code. But you will
-  // probably find it useful to
-  //   implement this method and use it as a helper during the updateWeights
-  //   phase.
+  // measurement and assign the id of the landmark to the observation
 
   for(auto& observation : observations)
   {
@@ -103,11 +101,6 @@ void ParticleFilter::dataAssociation(const std::vector<LandmarkObs>& predicted,
 void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
                                    const std::vector<LandmarkObs>& observations,
                                    const Map& map_landmarks) {
-  // NOTE: The observations are given in the VEHICLE'S coordinate system. Your
-  // particles are located
-  //   according to the MAP'S coordinate system. You will need to transform
-  //   between the two systems.
-
   weights.clear();
 
   auto sig_x = std_landmark[0];
@@ -135,7 +128,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
 
     // Predicted observations (must be in Map-frame too!)
-    std::vector<LandmarkObs> predicted_obs;		
+    std::vector<LandmarkObs> predicted_obs;
     for (const auto& landmark : map_landmarks.landmark_list) {
 
       if (dist(landmark.x_f, landmark.y_f, x_p, y_p) <= sensor_range) {
