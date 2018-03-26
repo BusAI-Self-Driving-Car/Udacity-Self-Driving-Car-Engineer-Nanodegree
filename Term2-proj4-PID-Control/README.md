@@ -1,6 +1,41 @@
 # CarND-Controls-PID
 Self-Driving Car Engineer Nanodegree Program
 
+### Proportional control
+Proportional control generates a control signal in direct proportion to the cross-track-error (CTE), in such a way that the CTE is reduced. For example, if the car is diverging rightwards from the center of the road, P-control will generate a steering angle command in the counter-clockwise direction with the aim of bringing the car back towards the center of the road.
+
+Using a P-control gain `K_p = 1.0` leads to the car rapidly oscillating about the center of the road. At some point, the car drives off the road completely:
+
+## P-control with parameter 1.0
+<p align="center">
+ <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
+I gradually reduced the P-control gain down to 0.1 such that the car manages to stay on the road much longer than with `K_p = 1.0`. However P-control by itself is not sufficient, especially as the car starts turning. As the car turns, the reference trajectory changes continuosly, increasing the CTE, and thus the P-control command. This leads to oscillations. To prevent this behavior, I will include Derivative-control which damps the P-control command as
+the car gets closer to the reference trajectory (center of the road).
+## P-control with parameter 0.1
+<p align="center">
+ <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
+
+### Proportional-derivative control
+
+Derivative(D)-control damps the P-control command as the car gets closer to the center of the road. Thus the car does not overshoot much (ideally not at all). The system is more stable and settles to its desired state quicker than with just P-control. With the following PD-control parameters, it was possible to keep the car on the drivable surface of the road throughout the simulator track.
+
+## P-control with parameter 0.1 and D-control with parameter 1.0
+<p align="center">
+ <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
+<p align="center">
+ <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+</p>
+
+### Integral control
+
+Integral(I)-control generates a command component that compensates for any systematic bias in the system. The car could have such a bias if, for example, the front wheels are not oriented exactly straight for a steering angle of 0°. Either the car in the Udacity simulator does not seems to have such a bias, or the simulator track is not long enough for such a bias to have any visible effect. Hence I did not use an I-controller in my project.
+
 ---
 
 ## Dependencies
@@ -19,7 +54,7 @@ Self-Driving Car Engineer Nanodegree Program
   * Run either `./install-mac.sh` or `./install-ubuntu.sh`.
   * If you install from source, checkout to commit `e94b6e1`, i.e.
     ```
-    git clone https://github.com/uWebSockets/uWebSockets 
+    git clone https://github.com/uWebSockets/uWebSockets
     cd uWebSockets
     git checkout e94b6e1
     ```
@@ -33,7 +68,7 @@ There's an experimental patch for windows in this [PR](https://github.com/udacit
 1. Clone this repo.
 2. Make a build directory: `mkdir build && cd build`
 3. Compile: `cmake .. && make`
-4. Run it: `./pid`. 
+4. Run it: `./pid`.
 
 Tips for setting up your environment can be found [here](https://classroom.udacity.com/nanodegrees/nd013/parts/40f38239-66b6-46ec-ae68-03afd8a601c8/modules/0949fca6-b379-42af-a919-ee50aa304e6a/lessons/f758c44c-5e40-4e01-93b5-1a82aa4e044f/concepts/23d376c7-0195-4276-bdf0-e02f1f3c665d)
 

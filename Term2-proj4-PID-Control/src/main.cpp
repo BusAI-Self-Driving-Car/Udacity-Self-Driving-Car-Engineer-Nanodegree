@@ -34,6 +34,8 @@ int main()
 
   PID pid_steering;
   //pid_steering.Init(0.1, 0.0, 0.0);
+  //pid_steering.Init(0.0, 0.0, 1.0);
+  //pid_steering.Init(0.1, 0.0, 1.0);
   pid_steering.Init(0.1, 0.0001, 1.0);
 
   // TODO PID controller for the throttle
