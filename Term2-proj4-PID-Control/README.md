@@ -8,7 +8,7 @@ Using a P-control gain `K_p = 1.0` leads to the car rapidly oscillating about th
 
 #### P-control with parameter 1.0
 <p align="center">
- <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+ <a href=""><img src="./videos/P-control-1_0.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
 
 I gradually reduced the P-control gain down to 0.1 such that the car manages to stay on the road much longer than with `K_p = 1.0`. However P-control by itself is not sufficient, especially as the car starts turning. As the car turns, the reference trajectory changes continuosly, increasing the CTE, and thus the P-control command. This leads to oscillations. To prevent this behavior, I will include Derivative-control which damps the P-control command as
@@ -16,7 +16,7 @@ the car gets closer to the reference trajectory (center of the road).
 
 #### P-control with parameter 0.1
 <p align="center">
- <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+ <a href=""><img src="./videos/P-control-0_1.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
 
 
@@ -26,11 +26,7 @@ Derivative(D)-control damps the P-control command as the car gets closer to the 
 
 #### P-control with parameter 0.1 and D-control with parameter 1.0
 <p align="center">
- <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
-</p>
-
-<p align="center">
- <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
+ <a href=""><img src="./videos/P-0_1-D-1_0.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
 
 ### Integral control
