@@ -6,14 +6,15 @@ Proportional control generates a control signal in direct proportion to the cros
 
 Using a P-control gain `K_p = 1.0` leads to the car rapidly oscillating about the center of the road. At some point, the car drives off the road completely:
 
-## P-control with parameter 1.0
+#### P-control with parameter 1.0
 <p align="center">
  <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
 
 I gradually reduced the P-control gain down to 0.1 such that the car manages to stay on the road much longer than with `K_p = 1.0`. However P-control by itself is not sufficient, especially as the car starts turning. As the car turns, the reference trajectory changes continuosly, increasing the CTE, and thus the P-control command. This leads to oscillations. To prevent this behavior, I will include Derivative-control which damps the P-control command as
 the car gets closer to the reference trajectory (center of the road).
-## P-control with parameter 0.1
+
+#### P-control with parameter 0.1
 <p align="center">
  <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
@@ -23,7 +24,7 @@ the car gets closer to the reference trajectory (center of the road).
 
 Derivative(D)-control damps the P-control command as the car gets closer to the center of the road. Thus the car does not overshoot much (ideally not at all). The system is more stable and settles to its desired state quicker than with just P-control. With the following PD-control parameters, it was possible to keep the car on the drivable surface of the road throughout the simulator track.
 
-## P-control with parameter 0.1 and D-control with parameter 1.0
+#### P-control with parameter 0.1 and D-control with parameter 1.0
 <p align="center">
  <a href=""><img src="./videos/XX.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
