@@ -218,8 +218,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   }
   // Throttle
   for (size_t i = a_start; i < size; i++) {
-    opt_vector_lowerbound[i] = -1;
-    opt_vector_upperbound[i] = 1;
+    opt_vector_lowerbound[i] = -1.0;
+    opt_vector_upperbound[i] = 1.0;
   }
 
   /* Constraints from the model-update equations.
@@ -278,5 +278,16 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //assert(solution.status == CppAD::ipopt::solve_result<Dvector>::success);
 
   std::cout << "Cost " << solution.obj_value << std::endl << std::endl;
-  return {solution.x[delta_start], solution.x[a_start]};
+
+  // Return actuator values for the first timestep in the prediction horizon.
+  vector<double> result;
+  result.push_back(solution.x[delta_start]);
+  result.push_back(solution.x[a_start]);
+
+  // MPC prediction horizon
+  for (size_t i = 0; i < N; ++i) {
+      result.push_back(solution.x[x_start + i]);
+      result.push_back(solution.x[y_start + i]);
+  }
+  return result;
 }
