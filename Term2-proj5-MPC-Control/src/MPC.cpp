@@ -102,30 +102,33 @@ public:
     }
 
     // Setup initial model constraints
-    fg[1 + x_start] = opt_vector[x_start];
-    fg[1 + y_start] = opt_vector[y_start];
-    fg[1 + psi_start] = opt_vector[psi_start];
-    fg[1 + v_start] = opt_vector[v_start];
-    fg[1 + cte_start] = opt_vector[cte_start];
-    fg[1 + epsi_start] = opt_vector[epsi_start];
+    fg[1 + x_start]     = opt_vector[x_start];
+    fg[1 + y_start]     = opt_vector[y_start];
+    fg[1 + psi_start]   = opt_vector[psi_start];
+    fg[1 + v_start]     = opt_vector[v_start];
+    fg[1 + cte_start]   = opt_vector[cte_start];
+    fg[1 + epsi_start]  = opt_vector[epsi_start];
 
     // The rest of the constraints
     for (size_t i = 1; i < N; i++) {
-      AD<double> x1 = opt_vector[x_start + i];
-      AD<double> y1 = opt_vector[y_start + i];
-      AD<double> psi1 = opt_vector[psi_start + i];
-      AD<double> v1 = opt_vector[v_start + i];
-      AD<double> cte1 = opt_vector[cte_start + i];
-      AD<double> epsi1 = opt_vector[epsi_start + i];
+      // time t+1
+      AD<double> x1     = opt_vector[x_start + i];
+      AD<double> y1     = opt_vector[y_start + i];
+      AD<double> psi1   = opt_vector[psi_start + i];
+      AD<double> v1     = opt_vector[v_start + i];
+      AD<double> cte1   = opt_vector[cte_start + i];
+      AD<double> epsi1  = opt_vector[epsi_start + i];
 
-      AD<double> x0 = opt_vector[x_start + i - 1];
-      AD<double> y0 = opt_vector[y_start + i - 1];
-      AD<double> psi0 = opt_vector[psi_start + i - 1];
-      AD<double> v0 = opt_vector[v_start + i - 1];
-      AD<double> cte0 = opt_vector[cte_start + i - 1];
-      AD<double> epsi0 = opt_vector[epsi_start + i - 1];
+      // time t
+      AD<double> x0     = opt_vector[x_start + i - 1];
+      AD<double> y0     = opt_vector[y_start + i - 1];
+      AD<double> psi0   = opt_vector[psi_start + i - 1];
+      AD<double> v0     = opt_vector[v_start + i - 1];
+      AD<double> cte0   = opt_vector[cte_start + i - 1];
+      AD<double> epsi0  = opt_vector[epsi_start + i - 1];
+
       AD<double> delta0 = opt_vector[delta_start + i - 1];
-      AD<double> a0 = opt_vector[a_start + i - 1];
+      AD<double> a0     = opt_vector[a_start + i - 1];
 
       fg[1 + x_start + i] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
       fg[1 + y_start + i] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
@@ -174,11 +177,11 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   */
   size_t size = 6 * N + 2 * (N-1);
 
-  auto x = state[0];
-  auto y = state[1];
-  auto psi = state[2];
-  auto v = state[3];
-  auto cte = state[4];
+  auto x    = state[0];
+  auto y    = state[1];
+  auto psi  = state[2];
+  auto v    = state[3];
+  auto cte  = state[4];
   auto epsi = state[5];
 
   /* Initialize vector of variables to be optimized over (see opt_vector above).
@@ -192,21 +195,21 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   */
   Dvector opt_vector(size);
   for (size_t i = 0; i < size; i++) {
-    opt_vector[i] = 0;
+    opt_vector[i] = 0.0;
   }
-  opt_vector[x_start] = x;
-  opt_vector[y_start] = y;
-  opt_vector[psi_start] = psi;
-  opt_vector[v_start] = v;
-  opt_vector[cte_start] = cte;
-  opt_vector[epsi_start] = epsi;
+  opt_vector[x_start]     = x;
+  opt_vector[y_start]     = y;
+  opt_vector[psi_start]   = psi;
+  opt_vector[v_start]     = v;
+  opt_vector[cte_start]   = cte;
+  opt_vector[epsi_start]  = epsi;
 
   // Bounds on opt_vector -- state vector part.
   Dvector opt_vector_lowerbound(size);
   Dvector opt_vector_upperbound(size);
   for (size_t i = 0; i < delta_start; i++) {
-    opt_vector_lowerbound[i] = std::numeric_limits<float>::min();
-    opt_vector_upperbound[i] = std::numeric_limits<float>::max();
+    opt_vector_lowerbound[i] = -numeric_limits<float>::max();
+    opt_vector_upperbound[i] = numeric_limits<float>::max();
   }
 
   // Bounds on opt_vector -- actuator variables part.
@@ -235,19 +238,19 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
     constraints_lowerbound[i] = 0;
     constraints_upperbound[i] = 0;
   }
-  constraints_lowerbound[x_start] = x;
-  constraints_lowerbound[y_start] = y;
-  constraints_lowerbound[psi_start] = psi;
-  constraints_lowerbound[v_start] = v;
-  constraints_lowerbound[cte_start] = cte;
-  constraints_lowerbound[epsi_start] = epsi;
+  constraints_lowerbound[x_start]     = x;
+  constraints_lowerbound[y_start]     = y;
+  constraints_lowerbound[psi_start]   = psi;
+  constraints_lowerbound[v_start]     = v;
+  constraints_lowerbound[cte_start]   = cte;
+  constraints_lowerbound[epsi_start]  = epsi;
 
-  constraints_upperbound[x_start] = x;
-  constraints_upperbound[y_start] = y;
-  constraints_upperbound[psi_start] = psi;
-  constraints_upperbound[v_start] = v;
-  constraints_upperbound[cte_start] = cte;
-  constraints_upperbound[epsi_start] = epsi;
+  constraints_upperbound[x_start]     = x;
+  constraints_upperbound[y_start]     = y;
+  constraints_upperbound[psi_start]   = psi;
+  constraints_upperbound[v_start]     = v;
+  constraints_upperbound[cte_start]   = cte;
+  constraints_upperbound[epsi_start]  = epsi;
 
   // options for IPOPT solver
   std::string options;
@@ -276,7 +279,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
       fg_eval, solution);
 
   //assert(solution.status == CppAD::ipopt::solve_result<Dvector>::success);
-
   std::cout << "Cost " << solution.obj_value << std::endl << std::endl;
 
   // Return actuator values for the first timestep in the prediction horizon.
@@ -285,7 +287,7 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   result.push_back(solution.x[a_start]);
 
   // MPC prediction horizon
-  for (size_t i = 0; i < N; ++i) {
+  for (size_t i = 0; i < N; i++) {
       result.push_back(solution.x[x_start + i]);
       result.push_back(solution.x[y_start + i]);
   }
