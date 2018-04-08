@@ -88,8 +88,8 @@ int main() {
           double py = j[1]["y"];
           double psi = j[1]["psi"];
           double v = j[1]["speed"];
-          double delta = j[1]["steering_angle"];
-          double a = j[1]["throttle"];
+          /*double delta = j[1]["steering_angle"];
+          double a = j[1]["throttle"];*/
 
           // Transform waypoints to car reference frame
           for (size_t i = 0; i < ptsx.size(); ++i) {
@@ -117,19 +117,19 @@ int main() {
           double epsi = -atan(coeffs[1]);
 
           // Account for latency between command and response
-          const double dt = 0.1;  // assume 100 ms latency
-          const double Lf = 2.67;
+          //const double dt = 0.1;  // assume 100 ms latency
+          //const double Lf = 2.67;
           // x, y and psi = 0 in car frame
-          double late_px = 0.0 + v * dt;
+          /*double late_px = 0.0 + v * dt;
           double late_py  = 0.0;
           double late_psi = 0.0 + v/Lf * delta * dt;
           double late_v = v + a * dt;
           double late_cte = cte + v * sin(epsi) * dt;
           double late_epsi = epsi + v/Lf * delta * dt;
+          state << late_px, late_py, late_psi, late_v, late_cte, late_epsi;*/
 
           Eigen::VectorXd state(6);
           state << 0, 0, 0, v, cte, epsi;
-          //state << late_px, late_py, late_psi, late_v, late_cte, late_epsi;
 
           std::vector<double> solution = mpc.Solve(state, coeffs);
 
