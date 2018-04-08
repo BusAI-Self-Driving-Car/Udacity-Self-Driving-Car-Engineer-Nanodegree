@@ -127,7 +127,9 @@ public:
       AD<double> cte0   = opt_vector[cte_start + i - 1];
       AD<double> epsi0  = opt_vector[epsi_start + i - 1];
 
-      AD<double> delta0 = opt_vector[delta_start + i - 1];
+      /* NOTE: don't know why delta0 has to be negated here for the program to
+      work correctly! */
+      AD<double> delta0 = -opt_vector[delta_start + i - 1];
       AD<double> a0     = opt_vector[a_start + i - 1];
 
       fg[1 + x_start + i] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
