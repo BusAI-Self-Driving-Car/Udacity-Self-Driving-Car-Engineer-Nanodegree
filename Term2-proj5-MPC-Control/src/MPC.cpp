@@ -47,7 +47,7 @@ class FG_eval {
 private:
   const double ref_cte_ = 0.;
   const double ref_epsi_ = 0.;
-  const double ref_v_ = 100.;
+  const double ref_v_ = 40.;
 
   // Weights used in the cost function
   const double w_cte_error_ = 2000.;

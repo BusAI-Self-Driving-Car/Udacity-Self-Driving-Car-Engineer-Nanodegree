@@ -128,8 +128,8 @@ int main() {
           double late_epsi = epsi + v/Lf * delta * dt;
 
           Eigen::VectorXd state(6);
-          //state << 0, 0, 0, v, cte, epsi;
-          state << late_px, late_py, late_psi, late_v, late_cte, late_epsi;
+          state << 0, 0, 0, v, cte, epsi;
+          //state << late_px, late_py, late_psi, late_v, late_cte, late_epsi;
 
           std::vector<double> solution = mpc.Solve(state, coeffs);
 
