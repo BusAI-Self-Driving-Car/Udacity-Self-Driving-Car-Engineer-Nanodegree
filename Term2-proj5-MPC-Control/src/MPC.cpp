@@ -2,8 +2,6 @@
 #include <math.h>
 
 #include "MPC.h"
-#include <cppad/cppad.hpp>
-#include <cppad/ipopt/solve.hpp>
 #include "Eigen-3.3/Eigen/Core"
 
 using CppAD::AD;
@@ -157,9 +155,127 @@ public:
 MPC::MPC() {}
 MPC::~MPC() {}
 
-vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
+string MPC::getIpoptOptions() const
+{
+  std::string options;
 
-  typedef CPPAD_TESTVECTOR(double) Dvector;
+  // Uncomment this if you'd like more print information
+  options += "Integer print_level  0\n";
+
+  /* NOTE: Setting sparse to true allows the solver to take advantage
+  * of sparse routines, this makes the computation MUCH FASTER. If you
+  * can uncomment 1 of these and see if it makes a difference or not but
+  * if you uncomment both the computation time should go up in orders of
+  * magnitude.
+  */
+  options += "Sparse  true        forward\n";
+  //options += "Sparse  true        reverse\n";
+
+  // NOTE: solver maximum time. Change if required.
+  options += "Numeric max_cpu_time          0.5\n";
+
+  return options;
+}
+
+vector<double> MPC::getResult(const CppAD::ipopt::solve_result<Dvector>& solution) const
+{
+  // Return actuator values for the first timestep in the prediction horizon.
+
+  vector<double> result;
+  result.push_back(solution.x[delta_start]);
+  result.push_back(solution.x[a_start]);
+
+  // MPC prediction horizon
+  for (size_t i = 0; i < N; i++) {
+      result.push_back(solution.x[x_start + i]);
+      result.push_back(solution.x[y_start + i]);
+  }
+
+  return result;
+}
+
+using Dvector = CPPAD_TESTVECTOR(double);
+Dvector MPC::initOptimizationVariablesVector(const Eigen::VectorXd& state,
+                                             size_t size) const
+{
+  /* opt_vector is structured as follows:
+  * [x0, ... xN-1, y0, ... yN-1,
+  * psi0, ... psiN-1, v0, ... vN-1,
+  * cte0, ... cteN-1,
+  * epsi0,... epsiN-1,
+  * delta0, ... deltaN-2,
+  * a0, ... aN-2]
+  */
+  Dvector opt_vector(size);
+  for (size_t i = 0; i < size; i++) {
+    opt_vector[i] = 0.0;
+  }
+  opt_vector[x_start]     = state[0];
+  opt_vector[y_start]     = state[1];
+  opt_vector[psi_start]   = state[2];
+  opt_vector[v_start]     = state[3];
+  opt_vector[cte_start]   = state[4];
+  opt_vector[epsi_start]  = state[5];
+
+  return opt_vector;
+}
+
+void MPC::setupBoundsOnOptimizationVars(size_t size, Dvector& opt_vector_lowerbound,
+                                        Dvector& opt_vector_upperbound) const
+{
+  // State vector part
+  for (size_t i = 0; i < delta_start; i++) {
+    opt_vector_lowerbound[i] = -numeric_limits<float>::max();
+    opt_vector_upperbound[i] = numeric_limits<float>::max();
+  }
+
+  // Actuator variables part.
+  // Steering angle [-25, 25], but expressed in radians
+  double max_angle = 25.0 * M_PI / 180;
+  for (size_t i = delta_start; i < a_start; i++) {
+    opt_vector_lowerbound[i] = -max_angle;
+    opt_vector_upperbound[i] = max_angle;
+  }
+  // Throttle
+  for (size_t i = a_start; i < size; i++) {
+    opt_vector_lowerbound[i] = -1.0;
+    opt_vector_upperbound[i] = 1.0;
+  }
+}
+
+void MPC::setupBoundsOnConstraints(Dvector& constraints_lowerbound,
+                                   Dvector& constraints_upperbound,
+                                   size_t n_constraints,
+                                   Eigen::VectorXd state) const
+{
+  for (size_t i = 0; i < n_constraints; i++) {
+    constraints_lowerbound[i] = 0;
+    constraints_upperbound[i] = 0;
+  }
+
+  auto x    = state[0];
+  auto y    = state[1];
+  auto psi  = state[2];
+  auto v    = state[3];
+  auto cte  = state[4];
+  auto epsi = state[5];
+
+  constraints_lowerbound[x_start]     = x;
+  constraints_lowerbound[y_start]     = y;
+  constraints_lowerbound[psi_start]   = psi;
+  constraints_lowerbound[v_start]     = v;
+  constraints_lowerbound[cte_start]   = cte;
+  constraints_lowerbound[epsi_start]  = epsi;
+
+  constraints_upperbound[x_start]     = x;
+  constraints_upperbound[y_start]     = y;
+  constraints_upperbound[psi_start]   = psi;
+  constraints_upperbound[v_start]     = v;
+  constraints_upperbound[cte_start]   = cte;
+  constraints_upperbound[epsi_start]  = epsi;
+}
+
+vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) const {
 
   /* TODO: Set the number of model variables (includes both states and inputs).
   * For example: If the state is a 4 element vector, the actuators is a 2
@@ -179,98 +295,27 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   */
   size_t size = 6 * N + 2 * (N-1);
 
-  auto x    = state[0];
-  auto y    = state[1];
-  auto psi  = state[2];
-  auto v    = state[3];
-  auto cte  = state[4];
-  auto epsi = state[5];
+  // Initialize vector of variables to be optimized over (see opt_vector above).
+  Dvector opt_vector = initOptimizationVariablesVector(state, size);
 
-  /* Initialize vector of variables to be optimized over (see opt_vector above).
-  * opt_vector is structured as follows:
-  * [x0, ... xN-1, y0, ... yN-1,
-  * psi0, ... psiN-1, v0, ... vN-1,
-  * cte0, ... cteN-1,
-  * epsi0,... epsiN-1,
-  * delta0, ... deltaN-2,
-  * a0, ... aN-2]
-  */
-  Dvector opt_vector(size);
-  for (size_t i = 0; i < size; i++) {
-    opt_vector[i] = 0.0;
-  }
-  opt_vector[x_start]     = x;
-  opt_vector[y_start]     = y;
-  opt_vector[psi_start]   = psi;
-  opt_vector[v_start]     = v;
-  opt_vector[cte_start]   = cte;
-  opt_vector[epsi_start]  = epsi;
-
-  // Bounds on opt_vector -- state vector part.
+  // Bounds on vector of optimization variables.
   Dvector opt_vector_lowerbound(size);
   Dvector opt_vector_upperbound(size);
-  for (size_t i = 0; i < delta_start; i++) {
-    opt_vector_lowerbound[i] = -numeric_limits<float>::max();
-    opt_vector_upperbound[i] = numeric_limits<float>::max();
-  }
-
-  // Bounds on opt_vector -- actuator variables part.
-  // Steering angle [-25, 25], but expressed in radians
-  double max_angle = 25.0 * M_PI / 180;
-  for (size_t i = delta_start; i < a_start; i++) {
-    opt_vector_lowerbound[i] = -max_angle;
-    opt_vector_upperbound[i] = max_angle;
-  }
-  // Throttle
-  for (size_t i = a_start; i < size; i++) {
-    opt_vector_lowerbound[i] = -1.0;
-    opt_vector_upperbound[i] = 1.0;
-  }
+  setupBoundsOnOptimizationVars(size, opt_vector_lowerbound, opt_vector_upperbound);
 
   /* Constraints from the model-update equations.
    * e.g., xt+1 = xt + vt * cos(psit) * dt leads to the constraint:
    *       xt+1 - (xt + vt * cos(psit) * dt) = 0
    */
   size_t n_constraints = 6 * N;
-
-  // Bounds on constraints.
   Dvector constraints_lowerbound(n_constraints);
   Dvector constraints_upperbound(n_constraints);
-  for (size_t i = 0; i < n_constraints; i++) {
-    constraints_lowerbound[i] = 0;
-    constraints_upperbound[i] = 0;
-  }
-  constraints_lowerbound[x_start]     = x;
-  constraints_lowerbound[y_start]     = y;
-  constraints_lowerbound[psi_start]   = psi;
-  constraints_lowerbound[v_start]     = v;
-  constraints_lowerbound[cte_start]   = cte;
-  constraints_lowerbound[epsi_start]  = epsi;
-
-  constraints_upperbound[x_start]     = x;
-  constraints_upperbound[y_start]     = y;
-  constraints_upperbound[psi_start]   = psi;
-  constraints_upperbound[v_start]     = v;
-  constraints_upperbound[cte_start]   = cte;
-  constraints_upperbound[epsi_start]  = epsi;
+  setupBoundsOnConstraints(constraints_lowerbound,
+                           constraints_upperbound,
+                           n_constraints, state);
 
   // options for IPOPT solver
-  std::string options;
-
-  // Uncomment this if you'd like more print information
-  options += "Integer print_level  0\n";
-
-  /* NOTE: Setting sparse to true allows the solver to take advantage
-  * of sparse routines, this makes the computation MUCH FASTER. If you
-  * can uncomment 1 of these and see if it makes a difference or not but
-  * if you uncomment both the computation time should go up in orders of
-  * magnitude.
-  */
-  options += "Sparse  true        forward\n";
-  //options += "Sparse  true        reverse\n";
-
-  // NOTE: solver maximum time. Change if required.
-  options += "Numeric max_cpu_time          0.5\n";
+  std::string options = getIpoptOptions();
 
   FG_eval fg_eval(coeffs); // object that computes cost and constraints
   CppAD::ipopt::solve_result<Dvector> solution;
@@ -283,15 +328,6 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) {
   //assert(solution.status == CppAD::ipopt::solve_result<Dvector>::success);
   std::cout << "Cost " << solution.obj_value << std::endl << std::endl;
 
-  // Return actuator values for the first timestep in the prediction horizon.
-  vector<double> result;
-  result.push_back(solution.x[delta_start]);
-  result.push_back(solution.x[a_start]);
-
-  // MPC prediction horizon
-  for (size_t i = 0; i < N; i++) {
-      result.push_back(solution.x[x_start + i]);
-      result.push_back(solution.x[y_start + i]);
-  }
+  vector<double> result = getResult(solution);
   return result;
 }
