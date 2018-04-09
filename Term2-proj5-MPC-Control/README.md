@@ -5,15 +5,65 @@ Self-Driving Car Engineer Nanodegree Program
  <a href=""><img src="./videos/MPC.gif" alt="Overview" width="50%" height="50%"></a>
 </p>
 
-Student describes their model in detail. This includes the state, actuators and update equations.
+### Model-predictive control
+Model Predictive Control is used in this project to generate actuator commands for a car in the Udacity simulator. From the simulator, it takes a reference trajectory to be followed as input in the form of waypoints corresponding to the road-center. It then optimizes vehicle state and actuator commands over a certain prediction time horizon to follow the reference trajectory as closely as possible. Since it explicitly models vehicle state, it is able to compensate for latency between actuator command and response by incorporating the (known) latency in its model.
 
+#### Vehicle state
+The vehicle state is defined as follows:
+```python
+[x, y -- position,
+psi -- angle w.r.t. x-axis,
+v -- actually, linear speed along psi,
+cte -- cross-track-error,
+epsi -- orientation error]
+```
+#### Actuator commands
+The commands consist of the steering angle delta with bounds [-25°, 25°] and the throttle parameter [-1, 1].
 
-Student discusses the reasoning behind the chosen N (timestep length) and dt (elapsed duration between timesteps) values. Additionally the student details the previous values tried.
+#### Cost function for optimizer
+The cost function is devised to achieve the following goals and is implemened in lines 76--98 in `MPC.cpp`:
+* Minimize cross-track-error.
+* Minimize orientation error.
+* Minimize deviation from reference velocity.
+* Minimize actuation.
+* Minimize change in actuation (to prevent sudden movements).
 
-A polynomial is fitted to waypoints. If the student preprocesses waypoints, the vehicle state, and/or actuators prior to the MPC procedure it is described.
+#### Kinematic model
+The kinematic model used for state update is as follows. The equations below lead to constraints for the optimizer, while it tries to optimize the cost function.
 
+```python
+x_t+1    = x_t    + v_t * cos(psi_t) * dt
+y_t+1    = y_t    + v_t * sin(psi_t) * dt
+psi_t+1  = psi_t  + v_t * delta_t/Lf * dt
+v_t+1    = v_t    + acc_t * dt
+cte_t+1  = cte_t  + v_t * sin(epsi_t) * dt
+epsi_t+1 = epsi_t + v_t * delta_t/Lf * dt
+```
 
-The student implements Model Predictive Control that handles a 100 millisecond latency. Student provides details on how they deal with latency.
+### Parameters N and dt
+N -- number of timesteps in prediction horizon
+dt --duration of each timestep
+
+The very first combination I tried was the one suggested in the Udacity classroom:
+```python
+size_t N = 25 ;
+double dt = 0.05 ;
+```
+
+The result was that after a while, the car started oscillating about the center of the road in the simulator. This combination is computationally quite complex, as for every call to `mpc.Solve()`, the program minimizes the cost function over `6 * N + 2 * (N-1) = 198` variables. This slows down the actuator command rate leading to instability of the car. Also, the timestep resolution of `0.05` could perhaps also be increased as not much changes in the motion of the car over 50 ms.
+
+The next combination I tried (and which worked well) was the following:
+```python
+size_t N = 10 ;
+double dt = 0.1 ;
+```
+Here, we optimize over only 78 variables per iteration. The timestep resolution is also doubled. The duration of the prediction horizon is thus `10*0.1 = 1s` which is a reasonable time frame for the prediction. Anything longer is perhaps not useful as the road may change significantly beyond that period of time.
+
+### Polynomial fitting to waypoints
+A 3rd order polynomial is fit to the waypoints received from the simulator (line 113 in `main.cpp`). This polynomial fit is used to calculate the cross-track-error and orientation-error at each of the timesteps in the MPC prediction horizon.
+
+### Latency
+In `main.cpp`, line 185, a 100 ms sleep statement is included to simulate a latency between the actuator commands and the actual response of the car to these commands. Unlike PID control, MPC can directly account for this latency in the kinematic model used for state prediction, thereby compensating for the latency in advance. This can be achieved by setting the initial state to the state at 100 ms in the future (implemented in lines 120--129 of `main.cpp`). An alternative to get the car to stay on track in the simulator for this project is to simply reduce the reference velocity that the car must track to a relatively low value (see line 48 in `MPC.cpp`).
 
 ---
 
