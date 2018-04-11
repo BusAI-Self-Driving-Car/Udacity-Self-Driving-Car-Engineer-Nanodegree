@@ -29,7 +29,6 @@ size_t delta_start = epsi_start + N;
 size_t a_start = delta_start + N - 1;
 
 /* This value assumes the model presented in the classroom is used.
- *
  * It was obtained by measuring the radius formed by running the vehicle in the
  * simulator around in a circle with a constant steering angle and velocity on a
  * flat terrain.
@@ -45,16 +44,18 @@ class FG_eval {
 private:
   const double ref_cte_ = 0.;
   const double ref_epsi_ = 0.;
-  const double ref_v_ = 40.;
+  const double ref_v_ = 75.;
 
   // Weights used in the cost function
-  const double w_cte_error_ = 2000.;
-  const double w_epsi_error_ = 2000.;
-  const double w_v_error_ = 100.;
-  const double w_delta_ = 10.;
-  const double w_a_ = 10.;
-  const double w_change_delta_ = 100000;
-  const double w_change_a_ = 10000;
+  const double w_cte_error_ = 200.;
+  const double w_epsi_error_ = 200.;
+  const double w_v_error_ = 1.;
+  const double w_delta_ = 1.;
+  const double w_a_ = 1.;
+  const double w_change_delta_ = 200;
+  const double w_change_a_ = 1;
+
+  const double latency_ = 0.1;  // seconds
 
 public:
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
@@ -129,6 +130,12 @@ public:
       work correctly! */
       AD<double> delta0 = -opt_vector[delta_start + i - 1];
       AD<double> a0     = opt_vector[a_start + i - 1];
+
+      // Compensate for command-response latency
+      x0   = x0 + v0 * CppAD::cos(psi0) * latency_;
+      y0   = y0 + v0 * CppAD::sin(psi0) * latency_;
+      psi0 = psi0 + (v0/Lf) * delta0 * latency_;
+      v0   = v0 + a0 * latency_;
 
       fg[1 + x_start + i] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
       fg[1 + y_start + i] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
@@ -328,6 +335,9 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) const {
   //assert(solution.status == CppAD::ipopt::solve_result<Dvector>::success);
   std::cout << "Cost " << solution.obj_value << std::endl << std::endl;
 
-  vector<double> result = getResult(solution);
+  vector<double> result;
+  if(solution.status == CppAD::ipopt::solve_result<Dvector>::success)
+    result = getResult(solution);
+
   return result;
 }
