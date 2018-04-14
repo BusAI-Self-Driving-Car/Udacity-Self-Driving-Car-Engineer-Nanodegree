@@ -67,7 +67,7 @@ In `main.cpp`, line 185, a 100 ms sleep statement is included to simulate a late
 
 Unlike PID control, MPC can directly account for this latency in the kinematic model used for state prediction, thereby compensating for the latency in advance.
 
-This can be achieved by considering a state predicted 100 ms in the future in the calculation of the model constraints for optimization (implemented in lines 134--138 of `MPC.cpp`).
+This can be achieved by setting the initial state to the state at 100 ms in the future (implemented in lines 120--128 of `main.cpp`).
 
 ---
 
