@@ -63,7 +63,11 @@ Here, we optimize over only 78 variables per iteration. The timestep resolution 
 A 3rd order polynomial is fit to the waypoints received from the simulator (line 113 in `main.cpp`). This polynomial fit is used to calculate the cross-track-error and orientation-error at each of the timesteps in the MPC prediction horizon.
 
 ### Latency
-In `main.cpp`, line 185, a 100 ms sleep statement is included to simulate a latency between the actuator commands and the actual response of the car to these commands. Unlike PID control, MPC can directly account for this latency in the kinematic model used for state prediction, thereby compensating for the latency in advance. This can be achieved by setting the initial state to the state at 100 ms in the future (implemented in lines 120--129 of `main.cpp`). An alternative to get the car to stay on track in the simulator for this project is to simply reduce the reference velocity that the car must track to a relatively low value (see line 48 in `MPC.cpp`).
+In `main.cpp`, line 185, a 100 ms sleep statement is included to simulate a latency between the actuator commands and the actual response of the car to these commands.
+
+Unlike PID control, MPC can directly account for this latency in the kinematic model used for state prediction, thereby compensating for the latency in advance.
+
+This can be achieved by considering a state predicted 100 ms in the future in the calculation of the model constraints for optimization (implemented in lines 134--138 of `MPC.cpp`).
 
 ---
 

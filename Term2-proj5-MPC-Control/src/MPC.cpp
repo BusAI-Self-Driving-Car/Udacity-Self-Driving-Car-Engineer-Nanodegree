@@ -44,18 +44,26 @@ class FG_eval {
 private:
   const double ref_cte_ = 0.;
   const double ref_epsi_ = 0.;
-  const double ref_v_ = 75.;
+  const double ref_v_ = 70.;
 
   // Weights used in the cost function
-  const double w_cte_error_ = 200.;
-  const double w_epsi_error_ = 200.;
+  /*const double w_cte_error_ = 500.;
+  const double w_epsi_error_ = 600.;
   const double w_v_error_ = 1.;
   const double w_delta_ = 1.;
   const double w_a_ = 1.;
-  const double w_change_delta_ = 200;
-  const double w_change_a_ = 1;
+  const double w_change_delta_ = 400;
+  const double w_change_a_ = 1;*/
 
-  const double latency_ = 0.1;  // seconds
+  const double w_cte_error_ = 2000.;
+  const double w_epsi_error_ = 2000.;
+  const double w_v_error_ = 1.;
+  const double w_delta_ = 10.;
+  const double w_a_ = 10.;
+  const double w_change_delta_ = 100;
+  const double w_change_a_ = 10.;
+
+  const double latency_ = 0.0;  // seconds
 
 public:
   typedef CPPAD_TESTVECTOR(AD<double>) ADvector;
@@ -145,14 +153,16 @@ public:
       fg[1 + v_start + i] = v1 - (v0 + a0 * dt);
 
       // Evaluate third order polynomial at x = 0
-      AD<double> fx_t = coeffs_[0] + coeffs_[1] * x0 + coeffs_[2] * x0 * x0 +
-                        coeffs_[3] * x0 * x0 * x0;
+      AD<double> fx_t = coeffs_[0] + coeffs_[1] * x0 +
+                        coeffs_[2] * CppAD::pow(x0, 2) +
+                        coeffs_[3] * CppAD::pow(x0, 3);
       fg[1 + cte_start + i] = cte1 - (y0 - fx_t + v0 * CppAD::sin(epsi0) * dt);
 
 
       // Angle at x = 0: evaluate polynomial derivative at x = 0
-      AD<double> psi_t = CppAD::atan(coeffs_[1] + 2 * coeffs_[2] * x0 +
-                                     3 * coeffs_[3] * x0 * x0);
+      AD<double> psi_t = CppAD::atan(coeffs_[1] +
+                                     2 * coeffs_[2] * x0 +
+                                     3 * coeffs_[3] * CppAD::pow(x0, 2));
       fg[1 + epsi_start + i] = epsi1 - (psi0 - psi_t + v0/Lf * delta0 * dt);
 
     }
@@ -176,7 +186,7 @@ string MPC::getIpoptOptions() const
   * magnitude.
   */
   options += "Sparse  true        forward\n";
-  //options += "Sparse  true        reverse\n";
+  options += "Sparse  true        reverse\n";
 
   // NOTE: solver maximum time. Change if required.
   options += "Numeric max_cpu_time          0.5\n";
@@ -217,12 +227,12 @@ Dvector MPC::initOptimizationVariablesVector(const Eigen::VectorXd& state,
   for (size_t i = 0; i < size; i++) {
     opt_vector[i] = 0.0;
   }
-  opt_vector[x_start]     = state[0];
+  /*opt_vector[x_start]     = state[0];
   opt_vector[y_start]     = state[1];
   opt_vector[psi_start]   = state[2];
   opt_vector[v_start]     = state[3];
   opt_vector[cte_start]   = state[4];
-  opt_vector[epsi_start]  = state[5];
+  opt_vector[epsi_start]  = state[5];*/
 
   return opt_vector;
 }
@@ -336,8 +346,8 @@ vector<double> MPC::Solve(Eigen::VectorXd state, Eigen::VectorXd coeffs) const {
   std::cout << "Cost " << solution.obj_value << std::endl << std::endl;
 
   vector<double> result;
-  if(solution.status == CppAD::ipopt::solve_result<Dvector>::success)
-    result = getResult(solution);
+  //if(solution.status == CppAD::ipopt::solve_result<Dvector>::success)
+  result = getResult(solution);
 
   return result;
 }
