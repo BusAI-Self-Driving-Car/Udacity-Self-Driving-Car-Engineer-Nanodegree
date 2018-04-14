@@ -42,23 +42,13 @@ const double Lf = 2.67;
 
 class FG_eval {
 private:
-  const double ref_cte_ = 0.;
-  const double ref_epsi_ = 0.;
-  const double ref_v_ = 70.;
+  const double ref_v_ = 100.;
 
   // Weights used in the cost function
-  /*const double w_cte_error_ = 500.;
-  const double w_epsi_error_ = 600.;
-  const double w_v_error_ = 1.;
-  const double w_delta_ = 1.;
-  const double w_a_ = 1.;
-  const double w_change_delta_ = 400;
-  const double w_change_a_ = 1;*/
-
   const double w_cte_error_ = 2000.;
   const double w_epsi_error_ = 2000.;
-  const double w_v_error_ = 1.;
-  const double w_delta_ = 10.;
+  const double w_v_error_ = 2.5;
+  const double w_delta_ = 100.; // 10.
   const double w_a_ = 10.;
   const double w_change_delta_ = 100;
   const double w_change_a_ = 10.;
@@ -73,38 +63,29 @@ public:
   FG_eval(Eigen::VectorXd coeffs) { this->coeffs_ = coeffs; }
 
   void operator()(ADvector& fg, const ADvector& opt_vector) {
-    /*
-    * `fg` a vector of the cost (fg[0]) and constraints (fg[1:end])
-    * `opt_vector` is a vector of variable values (state & control inputs)
-    */
+  /*
+  * `fg` a vector of the cost (fg[0]) and constraints (fg[1:end])
+  * `opt_vector` is a vector of variable values (state & control inputs)
+  */
+    auto& cost = fg[0];
+    cost = 0;
 
-    AD<double> &cost = fg[0];
-    cost = 0.;
+    // Cost for CTE, psi error and velocity
+    for (size_t t = 0; t < N; t++) {
+      cost += w_cte_error_ * CppAD::pow(opt_vector[cte_start + t], 2);
+      cost += w_epsi_error_ * CppAD::pow(opt_vector[epsi_start + t], 2);
+      cost += w_v_error_ * CppAD::pow(opt_vector[v_start + t] - ref_v_, 2);
 
-    for (size_t i = 0; i < N; i++) {
-      // Minimize cross-track-error.
-      cost += w_cte_error_ * CppAD::pow((opt_vector[cte_start+i] - ref_cte_), 2);
-
-      // Minimize orientation error.
-      cost += w_epsi_error_ * CppAD::pow((opt_vector[epsi_start+i] - ref_epsi_), 2);
-
-      // Minimize deviation from reference velocity.
-      cost += w_v_error_ * CppAD::pow((opt_vector[v_start+i] - ref_v_), 2);
-
-      // Minimize actuation.
-      if (i<(N-1)) {
-        cost += w_delta_ * CppAD::pow(opt_vector[delta_start+i], 2);
-        cost += w_a_ * CppAD::pow(opt_vector[a_start+i], 2);
+      if(t < (N-1)) {
+        cost += w_delta_ * CppAD::pow(opt_vector[delta_start + t], 2);
+        cost += w_a_ * CppAD::pow(opt_vector[a_start + t], 2);
       }
 
-      // Minimize change in actuation (to prevent sudden movements).
-      if (i<(N-2)) {
-        cost += w_change_delta_ *
-            CppAD::pow(opt_vector[delta_start+i+1] -
-                       opt_vector[delta_start+i], 2);
-
-        cost += w_change_a_ *
-            CppAD::pow(opt_vector[a_start+i+1] - opt_vector[a_start+i], 2);
+      if (t < (N-1)){
+        cost += w_change_delta_ * CppAD::pow(opt_vector[delta_start + t + 1] -
+                                             opt_vector[delta_start + t], 2);
+        cost += w_change_a_ * CppAD::pow(opt_vector[a_start + t + 1] -
+                                         opt_vector[a_start + t], 2);
       }
     }
 
@@ -117,54 +98,40 @@ public:
     fg[1 + epsi_start]  = opt_vector[epsi_start];
 
     // The rest of the constraints
-    for (size_t i = 1; i < N; i++) {
-      // time t+1
-      AD<double> x1     = opt_vector[x_start + i];
-      AD<double> y1     = opt_vector[y_start + i];
-      AD<double> psi1   = opt_vector[psi_start + i];
-      AD<double> v1     = opt_vector[v_start + i];
-      AD<double> cte1   = opt_vector[cte_start + i];
-      AD<double> epsi1  = opt_vector[epsi_start + i];
+    for (size_t t = 1; t < N; t++) {
+      // State at time t + 1
+      AD<double> x1     = opt_vector[x_start    + t];
+      AD<double> y1     = opt_vector[y_start    + t];
+      AD<double> psi1   = opt_vector[psi_start  + t];
+      AD<double> v1     = opt_vector[v_start    + t];
+      AD<double> cte1   = opt_vector[cte_start  + t];
+      AD<double> epsi1  = opt_vector[epsi_start + t];
 
-      // time t
-      AD<double> x0     = opt_vector[x_start + i - 1];
-      AD<double> y0     = opt_vector[y_start + i - 1];
-      AD<double> psi0   = opt_vector[psi_start + i - 1];
-      AD<double> v0     = opt_vector[v_start + i - 1];
-      AD<double> cte0   = opt_vector[cte_start + i - 1];
-      AD<double> epsi0  = opt_vector[epsi_start + i - 1];
+      // State at time t
+      AD<double> x0     = opt_vector[x_start    + t - 1];
+      AD<double> y0     = opt_vector[y_start    + t - 1];
+      AD<double> psi0   = opt_vector[psi_start  + t - 1];
+      AD<double> v0     = opt_vector[v_start    + t - 1];
+      AD<double> epsi0  = opt_vector[epsi_start + t - 1];
 
-      /* NOTE: don't know why delta0 has to be negated here for the program to
-      work correctly! */
-      AD<double> delta0 = -opt_vector[delta_start + i - 1];
-      AD<double> a0     = opt_vector[a_start + i - 1];
+      // Actuator constraints at time t only
+      AD<double> delta0 = -opt_vector[delta_start + t - 1];
+      AD<double> a0 = opt_vector[a_start + t - 1];
 
-      // Compensate for command-response latency
-      x0   = x0 + v0 * CppAD::cos(psi0) * latency_;
-      y0   = y0 + v0 * CppAD::sin(psi0) * latency_;
-      psi0 = psi0 + (v0/Lf) * delta0 * latency_;
-      v0   = v0 + a0 * latency_;
+      AD<double> fx0 = coeffs_[0] + coeffs_[1] * x0 +
+                      coeffs_[2] * CppAD::pow(x0, 2) +
+                      coeffs_[3] * CppAD::pow(x0, 3);
+      AD<double> psi_des0 = CppAD::atan(coeffs_[1] +
+                            2 * coeffs_[2] * x0 +
+                            3 * coeffs_[3] * CppAD::pow(x0,2));
 
-      fg[1 + x_start + i] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
-      fg[1 + y_start + i] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
-
-      fg[1 + psi_start + i] = psi1 - (psi0 + v0/Lf * delta0 * dt);
-
-      fg[1 + v_start + i] = v1 - (v0 + a0 * dt);
-
-      // Evaluate third order polynomial at x = 0
-      AD<double> fx_t = coeffs_[0] + coeffs_[1] * x0 +
-                        coeffs_[2] * CppAD::pow(x0, 2) +
-                        coeffs_[3] * CppAD::pow(x0, 3);
-      fg[1 + cte_start + i] = cte1 - (y0 - fx_t + v0 * CppAD::sin(epsi0) * dt);
-
-
-      // Angle at x = 0: evaluate polynomial derivative at x = 0
-      AD<double> psi_t = CppAD::atan(coeffs_[1] +
-                                     2 * coeffs_[2] * x0 +
-                                     3 * coeffs_[3] * CppAD::pow(x0, 2));
-      fg[1 + epsi_start + i] = epsi1 - (psi0 - psi_t + v0/Lf * delta0 * dt);
-
+      // Setting up the rest of the model constraints
+      fg[1 + x_start + t] = x1 - (x0 + v0 * CppAD::cos(psi0) * dt);
+      fg[1 + y_start + t] = y1 - (y0 + v0 * CppAD::sin(psi0) * dt);
+      fg[1 + psi_start + t] = psi1 - (psi0 + v0 * delta0/Lf * dt);
+      fg[1 + v_start + t] = v1 - (v0 + a0 * dt);
+      fg[1 + cte_start + t] = cte1 - (fx0 - y0 + (v0 * CppAD::sin(epsi0) * dt));
+      fg[1 + epsi_start + t] = epsi1 - (psi0 - psi_des0 + v0 * delta0/Lf * dt);
     }
   }
 };
@@ -186,7 +153,7 @@ string MPC::getIpoptOptions() const
   * magnitude.
   */
   options += "Sparse  true        forward\n";
-  options += "Sparse  true        reverse\n";
+  // options += "Sparse  true        reverse\n";
 
   // NOTE: solver maximum time. Change if required.
   options += "Numeric max_cpu_time          0.5\n";
@@ -227,12 +194,6 @@ Dvector MPC::initOptimizationVariablesVector(const Eigen::VectorXd& state,
   for (size_t i = 0; i < size; i++) {
     opt_vector[i] = 0.0;
   }
-  /*opt_vector[x_start]     = state[0];
-  opt_vector[y_start]     = state[1];
-  opt_vector[psi_start]   = state[2];
-  opt_vector[v_start]     = state[3];
-  opt_vector[cte_start]   = state[4];
-  opt_vector[epsi_start]  = state[5];*/
 
   return opt_vector;
 }
